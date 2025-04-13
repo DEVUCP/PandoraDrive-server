@@ -2,9 +2,9 @@ name: Scala CI
 
 on:
   push:
-    branches: [ CI ]  # Changed to target your CI branch
+    branches: [ CI ]
   pull_request:
-    branches: [ main, CI ]  # Include both main and CI branches
+    branches: [ main, CI ]
 
 jobs:
   test:
@@ -22,6 +22,10 @@ jobs:
           
       - name: Install sbt
         run: |
+          # Install sbt via official package
+          sudo mkdir -p /usr/share/keyrings
+          curl -fsSL https://repo.scala-sbt.org/scalasbt/debian/sbt-1.9.7.gpg | sudo gpg --dearmor -o /usr/share/keyrings/sbt.gpg
+          echo "deb [signed-by=/usr/share/keyrings/sbt.gpg] https://repo.scala-sbt.org/scalasbt/debian all main" | sudo tee /etc/apt/sources.list.d/sbt.list
           sudo apt-get update
           sudo apt-get install -y sbt
           
@@ -41,8 +45,8 @@ jobs:
           key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt') }}-${{ hashFiles('**/project/build.properties') }}
           
       - name: Run tests
-        run: sbt +test  # The '+' tests across all Scala versions if cross-built
+        run: sbt +test
         
       - name: Run http4s tests
-        if: success()  # Only run if previous steps succeeded
-        run: sbt 'project http4sModule' test  # Update with your actual module name
+        if: success()
+        run: sbt 'project http4sModule' test
