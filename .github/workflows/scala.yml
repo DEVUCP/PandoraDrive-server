@@ -2,9 +2,9 @@ name: Scala CI
 
 on:
   push:
-    branches: [ CI ]
+    branches: [ CI ]  # Changed to target your CI branch
   pull_request:
-    branches: [ CI ]
+    branches: [ main, CI ]  # Include both main and CI branches
 
 jobs:
   test:
@@ -13,16 +13,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up JDK
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'sbt'
           
       - name: Install sbt
-        uses: olafurpg/setup-sbt@v3
-        with:
-          version: "1.9.7"  # Specify sbt version, or remove for latest
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sbt
+          
+      - name: Verify installations
+        run: |
+          java -version
+          sbt --version
           
       - name: Cache dependencies
         uses: actions/cache@v4
@@ -30,18 +36,13 @@ jobs:
           path: |
             ~/.sbt
             ~/.ivy2/cache
-            ~/.coursier/cache/v1
-            ~/.cache/coursier/v1
+            ~/.coursier
             target
           key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt') }}-${{ hashFiles('**/project/build.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-sbt-
-            
-      - name: Check Scala version
-        run: sbt --client 'scalaVersion'
-        
+          
       - name: Run tests
-        run: sbt test
+        run: sbt +test  # The '+' tests across all Scala versions if cross-built
         
       - name: Run http4s tests
-        run: sbt test  # Or specific http4s module tests if applicable
+        if: success()  # Only run if previous steps succeeded
+        run: sbt 'project http4sModule' test  # Update with your actual module name
