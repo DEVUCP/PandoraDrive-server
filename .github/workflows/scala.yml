@@ -20,14 +20,13 @@ jobs:
           distribution: 'temurin'
           cache: 'sbt'
           
-      - name: Install sbt via Coursier
+      - name: Install sbt directly
         run: |
-          # Install Coursier
-          curl -fL https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux.gz | gzip -d > cs
-          chmod +x cs
-          ./cs setup --yes --apps sbt --jvm temurin:17
-          rm cs
-          echo "$HOME/.local/share/coursier/bin" >> $GITHUB_PATH
+          # Download and extract sbt directly
+          SBT_VERSION=1.9.7
+          mkdir -p ~/bin/sbt
+          curl -fL https://github.com/sbt/sbt/releases/download/v$SBT_VERSION/sbt-$SBT_VERSION.tgz | tar xz -C ~/bin/sbt --strip-components=1
+          echo "$HOME/bin/sbt/bin" >> $GITHUB_PATH
           
       - name: Verify installations
         run: |
