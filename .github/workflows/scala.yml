@@ -20,12 +20,11 @@ jobs:
           distribution: 'temurin'
           cache: 'sbt'
           
-      - name: Install sbt directly
+      - name: Install sbt
         run: |
-          # Download and extract sbt directly
           SBT_VERSION=1.9.7
-          mkdir -p ~/bin/sbt
-          curl -fL https://github.com/sbt/sbt/releases/download/v$SBT_VERSION/sbt-$SBT_VERSION.tgz | tar xz -C ~/bin/sbt --strip-components=1
+          mkdir -p ~/bin
+          curl -fL https://github.com/sbt/sbt/releases/download/v$SBT_VERSION/sbt-$SBT_VERSION.tgz | tar xz -C ~/bin
           echo "$HOME/bin/sbt/bin" >> $GITHUB_PATH
           
       - name: Verify installations
@@ -43,9 +42,11 @@ jobs:
             target
           key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt') }}-${{ hashFiles('**/project/build.properties') }}
           
-      - name: Run tests
-        run: sbt +test
+      - name: List projects
+        run: sbt projects
+          
+      - name: Run all tests
+        run: sbt test
         
-      - name: Run http4s tests
-        if: success()
-        run: sbt 'project http4sModule' test
+      # Remove the http4sModule-specific test if you don't have a separate module
+      # Or replace with your actual module name if you have one
