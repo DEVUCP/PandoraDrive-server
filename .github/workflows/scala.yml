@@ -20,14 +20,14 @@ jobs:
           distribution: 'temurin'
           cache: 'sbt'
           
-      - name: Install sbt
+      - name: Install sbt via Coursier
         run: |
-          # Install sbt via official package
-          sudo mkdir -p /usr/share/keyrings
-          curl -fsSL https://repo.scala-sbt.org/scalasbt/debian/sbt-1.9.7.gpg | sudo gpg --dearmor -o /usr/share/keyrings/sbt.gpg
-          echo "deb [signed-by=/usr/share/keyrings/sbt.gpg] https://repo.scala-sbt.org/scalasbt/debian all main" | sudo tee /etc/apt/sources.list.d/sbt.list
-          sudo apt-get update
-          sudo apt-get install -y sbt
+          # Install Coursier
+          curl -fL https://github.com/coursier/launchers/raw/master/cs-x86_64-pc-linux.gz | gzip -d > cs
+          chmod +x cs
+          ./cs setup --yes --apps sbt --jvm temurin:17
+          rm cs
+          echo "$HOME/.local/share/coursier/bin" >> $GITHUB_PATH
           
       - name: Verify installations
         run: |
