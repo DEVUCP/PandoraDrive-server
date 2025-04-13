@@ -19,6 +19,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           
+      - name: Install sbt
+        uses: olafurpg/setup-sbt@v3
+        with:
+          version: "1.9.7"  # Specify sbt version, or remove for latest
+          
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
@@ -38,17 +43,5 @@ jobs:
       - name: Run tests
         run: sbt test
         
-      - name: Run http4s tests (if separate)
-        run: sbt 'project http4sModule' test
-        # Replace 'http4sModule' with your actual module name if http4s is in a submodule
-        
-      - name: Check coverage (optional)
-        run: sbt coverage test coverageReport
-        # Requires sbt-scoverage plugin
-        
-      - name: Upload coverage (optional)
-        if: success()
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./target/scala-3.3.5/scoverage-report/scoverage.xml
-          # Adjust path based on your project structure
+      - name: Run http4s tests
+        run: sbt test  # Or specific http4s module tests if applicable
