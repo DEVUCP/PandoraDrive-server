@@ -1,0 +1,52 @@
+name: Scala CI
+
+on:
+  push:
+    branches: [ main, CI ]
+  pull_request:
+    branches: [ main, CI ]
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'sbt'
+          
+      - name: Install sbt
+        run: |
+          SBT_VERSION=1.9.7
+          mkdir -p ~/bin
+          curl -fL https://github.com/sbt/sbt/releases/download/v$SBT_VERSION/sbt-$SBT_VERSION.tgz | tar xz -C ~/bin
+          echo "$HOME/bin/sbt/bin" >> $GITHUB_PATH
+          
+      - name: Verify installations
+        run: |
+          java -version
+          sbt --version
+          
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.sbt
+            ~/.ivy2/cache
+            ~/.coursier
+            target
+          key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt') }}-${{ hashFiles('**/project/build.properties') }}
+          
+      - name: List projects
+        run: sbt projects
+          
+      - name: Run all tests
+        run: sbt test
+        
+      # Remove the http4sModule-specific test if you don't have a separate module
+      # Or replace with your actual module name if you have one
