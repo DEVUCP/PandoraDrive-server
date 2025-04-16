@@ -1,4 +1,4 @@
-name: Scala CI
+name: Scala Microservices CI
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [ main, CI ]
 
 jobs:
-  test:
-    name: Build and Test
+  api_gateway_test:
+    name: API Gateway Service
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,17 +20,32 @@ jobs:
           distribution: 'temurin'
           cache: 'sbt'
           
-      - name: Install sbt
-        run: |
-          SBT_VERSION=1.9.7
-          mkdir -p ~/bin
-          curl -fL https://github.com/sbt/sbt/releases/download/v$SBT_VERSION/sbt-$SBT_VERSION.tgz | tar xz -C ~/bin
-          echo "$HOME/bin/sbt/bin" >> $GITHUB_PATH
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.sbt
+            ~/.ivy2/cache
+            ~/.coursier
+            target
+          key: ${{ runner.os }}-api-gateway-${{ hashFiles('api_gateway_service/build.sbt') }}
           
-      - name: Verify installations
-        run: |
-          java -version
-          sbt --version
+      - name: Run tests
+        working-directory: ./api_gateway_service
+        run: sbt test
+
+  chatbot_test:
+    name: Chatbot Service
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'sbt'
           
       - name: Cache dependencies
         uses: actions/cache@v4
@@ -40,13 +55,62 @@ jobs:
             ~/.ivy2/cache
             ~/.coursier
             target
-          key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt') }}-${{ hashFiles('**/project/build.properties') }}
+          key: ${{ runner.os }}-chatbot-${{ hashFiles('chatbot_service/build.sbt') }}
           
-      - name: List projects
-        run: sbt projects
-          
-      - name: Run all tests
+      - name: Run tests
+        working-directory: ./chatbot_service
         run: sbt test
-        
-      # Remove the http4sModule-specific test if you don't have a separate module
-      # Or replace with your actual module name if you have one
+
+  file_service_test:
+    name: File Service
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'sbt'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.sbt
+            ~/.ivy2/cache
+            ~/.coursier
+            target
+          key: ${{ runner.os }}-file-service-${{ hashFiles('file_service/build.sbt') }}
+          
+      - name: Run tests
+        working-directory: ./file_service
+        run: sbt test
+
+  metadata_service_test:
+    name: Metadata Service
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'sbt'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.sbt
+            ~/.ivy2/cache
+            ~/.coursier
+            target
+          key: ${{ runner.os }}-metadata-service-${{ hashFiles('metadata_service/build.sbt') }}
+          
+      - name: Run tests
+        working-directory: ./metadata_service
+        run: sbt test
