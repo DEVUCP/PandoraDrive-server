@@ -1,0 +1,21 @@
+# Use the official SBT image with Scala 3.2.0 and Java 17
+FROM sbtscala/scala-sbt:eclipse-temurin-17.0.4_1.7.1_3.2.0
+
+# Set working directory
+WORKDIR /app
+
+# Copy build files first for better caching
+COPY build.sbt ./
+COPY project/ project/
+
+# Copy source files
+COPY src/ src/
+
+# Build the application
+RUN sbt compile
+
+# Expose the port your Http4s server runs on (adjust if needed)
+EXPOSE 55551
+
+# Command to run the application
+CMD ["sbt", "run"]
