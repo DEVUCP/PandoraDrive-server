@@ -20,14 +20,15 @@ import schema.initialize_schemas
 import model.get_folder_metadata_by_folder_id
 import types.ErrorResponse
 import org.http4s.server.Router
+import model.get_file_metadata_by_file_id
 
-val folder_routes = HttpRoutes
-  .of[IO] { case req @ GET -> Root :? IdQueryParamMatcher(id) =>
-    get_folder_metadata_by_folder_id(id) match {
-      case (Some(folder), None) => Ok(folder.asJson)
-      case (None, None) =>
-        NotFound(ErrorResponse("Folder not found").asJson)
+val file_routes = HttpRoutes
+  .of[IO] { case GET -> Root :? IdQueryParamMatcher(id) =>
+    get_file_metadata_by_file_id(id) match {
+      case (Some(file), _) => Ok(file.asJson)
       case (_, Some(e)) =>
         BadRequest(ErrorResponse(e).asJson)
+      case (None, None) =>
+        NotFound(ErrorResponse("File not found").asJson)
     }
   }

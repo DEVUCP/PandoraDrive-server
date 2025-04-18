@@ -11,7 +11,7 @@ import doobie.util.transactor.Transactor
 import db.transactor
 import io.circe.Encoder
 
-case class FileMetadataDB(
+case class FileMetadata(
     file_id: Int,
     folder_id: Int,
     file_name: String,

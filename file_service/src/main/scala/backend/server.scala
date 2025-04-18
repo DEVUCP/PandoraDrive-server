@@ -15,7 +15,7 @@ import io.circe.generic.auto._
 import org.http4s.circe._
 import org.http4s.server.Router
 
-import routes.{folder_routes}
+import routes.{folder_routes, file_routes}
 import schema.{initialize_schemas}
 
 object server extends IOApp:
@@ -23,18 +23,18 @@ object server extends IOApp:
   // simple HTTP service/app
 
   private val router = Router(
-    "/folder" -> folder_routes
-  )
+    "/folder" -> folder_routes,
+    "/file" -> file_routes
+  ).orNotFound
 
   // server run func
   def run(args: List[String]): IO[ExitCode] =
     initialize_schemas()
-    println("HELLO 1")
     EmberServerBuilder
       .default[IO]
       .withHost(ipv4"0.0.0.0")
       .withPort(port"55551")
-      .withHttpApp(router.orNotFound)
+      .withHttpApp(router)
       .build
       .use(_ => IO.never)
       .as(ExitCode.Success)
