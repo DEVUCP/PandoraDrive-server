@@ -10,10 +10,7 @@ import doobie.implicits._
 
 import schema.{FileMetadata, FolderMetadata}
 import db.transactor
-import dto.FileCreationBody
-import java.text.SimpleDateFormat
-import java.text.DateFormat
-import java.util.Calendar;
+import dto.{FileCreationBody, validate_file_creation_body}
 def get_file_metadata_by_file_id(
     id: Int
 ): (Option[FileMetadata], Option[String]) = {
@@ -39,12 +36,16 @@ def get_file_metadata_by_file_id(
 }
 
 def create_file_metadata(body: FileCreationBody): Option[String] =
-  // TODO: Validate body
-  val df: DateFormat = new SimpleDateFormat("YYYY-MM-DD");
-  val uploaded_at: String = df.format(Calendar.getInstance().getTime())
+  val (valid, err) = validate_file_creation_body(body)
+  if (!valid) return err
+
+  implicit val bigIntPut: Put[BigInt] =
+    Put[BigDecimal].contramap(bd => BigDecimal(bd))
+  val uploaded_at = java.time.Instant.now().toString
+
   val create: ConnectionIO[Int] =
     sql"""
-      insert into file_metadata(file_name, folder_id, size_bytes, mime_type, owner_id, status, created_at, uploaded_at, modified_at) values(${body.file_name}, ${body.folder_id}, ${body.size_bytes.toString}, ${body.mime_type}, ${body.owner_id}, ${body.status}, ${body.created_at}, "${uploaded_at}", ${body.modified_at});
+      insert into file_metadata(file_name, folder_id, size_bytes, mime_type, owner_id, status, created_at, uploaded_at, modified_at) values(${body.file_name}, ${body.folder_id}, ${body.size_bytes}, ${body.mime_type}, ${body.owner_id}, ${body.status}, ${body.created_at}, $uploaded_at, ${body.modified_at});
      """.update.run
 
   val result: Either[Throwable, Int] =
