@@ -18,7 +18,10 @@ case class FileMetadata(
     size_bytes: Int,
     mime_type: String,
     owner_id: Int,
-    status: String
+    status: String,
+    uploaded_at: String,
+    created_at: String,
+    modified_at: String
 )
 
 def create_file_metadata_table(): Unit =
@@ -26,7 +29,7 @@ def create_file_metadata_table(): Unit =
   val create: ConnectionIO[Int] =
     sql"""
      create table if not exists file_metadata (
-      file_id int PRIMARY KEY NOT NULL,
+      file_id INTEGER PRIMARY KEY AUTOINCREMENT,
       folder_id int NOT NULL,
       file_name TEXT NOT NULL,
       created_at TEXT NOT NULL,

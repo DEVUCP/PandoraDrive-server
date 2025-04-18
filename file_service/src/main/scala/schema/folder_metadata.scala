@@ -25,7 +25,7 @@ def create_folder_metadata_table(): Unit =
   val create: ConnectionIO[Int] =
     sql"""
      create table if not exists folder_metadata (
-      folder_id int PRIMARY KEY NOT NULL,
+      folder_id INTEGER PRIMARY KEY AUTOINCREMENT,
       parent_folder_id int NULL,
       folder_name TEXT NOT NULL,
       created_at TEXT NOT NULL,
