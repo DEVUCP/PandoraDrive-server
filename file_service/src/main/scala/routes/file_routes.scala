@@ -40,7 +40,8 @@ val file_routes = HttpRoutes
         case Left(error) =>
           BadRequest(ErrorResponse(s"Invalid body: ${error.getMessage}").asJson)
         case Right(body) =>
-          create_file_metadata(body) match {
+          val err = create_file_metadata(body)
+          err match {
             case Some(err) =>
               BadRequest(ErrorResponse(s"Error Ocurred: $err"))
             case None => Ok(SuccessResponse("File Metadata Inserted").asJson)
