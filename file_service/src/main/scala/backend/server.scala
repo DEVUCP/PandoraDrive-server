@@ -17,6 +17,7 @@ import org.http4s.server.Router
 
 import routes.{folder_routes, file_routes}
 import schema.{initialize_schemas}
+import utils.config
 
 object server extends IOApp:
 
