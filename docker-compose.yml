@@ -1,0 +1,62 @@
+services:
+  gateway:
+    build:
+      context: ./api_gateway_service
+      dockerfile: Dockerfile
+    environment:
+      - GATEWAY_PORT
+      - TEMPLATE_PORT
+      - METADATA_SERVICE_PORT
+      - CHATBOT_SERVICE_PORT
+      - FILE_SERVICE_PORT
+    ports:
+      - "${GATEWAY_PORT}:${GATEWAY_PORT}"
+
+  metadata_service:
+    build:
+      context: ./metadata_service
+      dockerfile: Dockerfile
+    environment:
+      - GATEWAY_PORT
+      - TEMPLATE_PORT
+      - METADATA_SERVICE_PORT
+      - CHATBOT_SERVICE_PORT
+      - FILE_SERVICE_PORT
+    ports:
+      - "${METADATA_SERVICE_PORT}:${METADATA_SERVICE_PORT}"
+
+  chatbot_service:
+    build:
+      context: ./chatbot_service
+      dockerfile: Dockerfile
+    environment:
+      - GATEWAY_PORT
+      - TEMPLATE_PORT
+      - METADATA_SERVICE_PORT
+      - CHATBOT_SERVICE_PORT
+      - FILE_SERVICE_PORT
+    ports:
+      - "${CHATBOT_SERVICE_PORT}:${CHATBOT_SERVICE_PORT}"
+
+  template:
+    build:
+      context: ./template_service
+      dockerfile: Dockerfile
+    environment:
+      - GATEWAY_PORT
+      - TEMPLATE_PORT
+    ports:
+      - "${TEMPLATE_PORT}:${TEMPLATE_PORT}"
+
+  file_service:
+    build:
+      context: ./file_service
+      dockerfile: Dockerfile
+    environment:
+      - GATEWAY_PORT
+      - TEMPLATE_PORT
+      - METADATA_SERVICE_PORT
+      - CHATBOT_SERVICE_PORT
+      - FILE_SERVICE_PORT
+    ports:
+      - "${FILE_SERVICE_PORT}:${FILE_SERVICE_PORT}"
