@@ -1,15 +1,7 @@
 package utils
 
-val config = {
-  val parse = (name: String) => {
-    val res = sys.env(name)
-    res match {
-      case "" => None
-      case _  => Some(res)
-    }
-  }
+val config =
   Map(
-    "JWT_SECRET" -> parse("JWT_SECRET"),
-    "DB_URL" -> parse("DB_URL")
+    "JWT_SECRET" -> sys.env.get("JWT_SECRET"),
+    "DB_URL" -> sys.env.get("DB_URL")
   )
-}
