@@ -6,12 +6,10 @@ import cats.effect.*
 import org.http4s.*
 import org.http4s.dsl.io.*
 import org.http4s.ember.server.*
+import org.http4s.multipart.*
 import com.comcast.ip4s.*
 
 import cats.effect.{IO, IOApp, ExitCode}
-import org.http4s._
-import org.http4s.dsl.io._
-import org.http4s.ember.server._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import org.http4s.circe._
@@ -22,10 +20,10 @@ import types.{ErrorResponse, FileUploadMetadataInserted}
 import org.http4s.server.Router
 import model.{get_file_metadata_by_file_id, create_file_metadata}
 import org.http4s.circe.CirceEntityCodec._
-import io.circe.generic.auto._
 import dto.FileCreationBody
 import utils.jwt.create_token
-import dto.FileInitToken
+import dto.{FileInitToken, ChunkUploadBody}
+import org.http4s.multipart.Multipart
 
 val file_routes = HttpRoutes
   .of[IO] {
@@ -66,4 +64,12 @@ val file_routes = HttpRoutes
             }
           }
       }
+    case req @ POST -> Root / "upload" / "chunk" =>
+      EntityDecoder
+        .mixedMultipartResource[IO]()
+        .use(decoder =>
+          req.decodeWith(decoder, strict = true)(multipart =>
+            Ok("Chunk Received")
+          )
+        )
   }
