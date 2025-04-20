@@ -53,7 +53,7 @@ def create_file_metadata(body: FileCreationBody): Either[String, FileId] = {
       )
       values (
         ${body.file_name}, ${body.folder_id}, ${body.size_bytes},
-        ${body.mime_type}, ${body.owner_id}, ${body.status},
+        ${body.mime_type}, ${body.owner_id}, 'UploadStart',
         ${body.created_at}, $uploaded_at, ${body.modified_at}
       )
     """
