@@ -10,9 +10,10 @@ import cats.effect.unsafe.implicits.global
 import doobie.util.transactor.Transactor
 import db.transactor
 import io.circe.Encoder
+import types.FileId
 
 case class FileMetadata(
-    file_id: Int,
+    file_id: FileId,
     folder_id: Int,
     file_name: String,
     size_bytes: Int,

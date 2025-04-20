@@ -13,23 +13,20 @@ case class FileCreationBody(
 
 def validate_file_creation_body(
     body: FileCreationBody
-): (Boolean, Option[String]) = {
+): Option[String] = {
   val allowedStatus = Set("UploadStart", "Uploaded", "Flawed")
   val dateRegex = """^\d{4}-\d{2}-\d{2}$""".r
 
   if (!allowedStatus.contains(body.status))
-    return (
-      false,
-      Some(
-        "Invalid Status; Valid Status is one of UploadStart, Uploaded, Flawed"
-      )
+    return Some(
+      "Invalid Status; Valid Status is one of UploadStart, Uploaded, Flawed"
     )
 
   if (!dateRegex.matches(body.created_at))
-    return (false, Some("created_at has invalid format (expected YYYY-MM-DD)"))
+    return Some("created_at has invalid format (expected YYYY-MM-DD)")
 
   if (!dateRegex.matches(body.modified_at))
-    return (false, Some("modified_at has invalid format (expected YYYY-MM-DD)"))
+    return Some("modified_at has invalid format (expected YYYY-MM-DD)")
 
-  (true, None)
+  None
 }

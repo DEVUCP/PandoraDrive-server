@@ -27,7 +27,7 @@ val folder_routes = HttpRoutes
       case (Some(folder), None) => Ok(folder.asJson)
       case (None, None) =>
         NotFound(ErrorResponse("Folder not found").asJson)
-      case (_, Some(e)) =>
+      case (None, Some(e)) =>
         BadRequest(ErrorResponse(e).asJson)
     }
   }

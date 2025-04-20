@@ -9,9 +9,10 @@ import cats.implicits._
 import cats.effect.unsafe.implicits.global
 import doobie.util.transactor.Transactor
 import db.transactor
+import types.FolderId
 
 case class FolderMetadata(
-    folder_id: Int,
+    folder_id: FolderId,
     parent_folder_id: Option[Int],
     folder_name: String,
     created_at: String,
