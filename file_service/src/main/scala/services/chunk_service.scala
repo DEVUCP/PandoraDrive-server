@@ -29,6 +29,7 @@ import model.chunk_exists
 import model.{chunk_reference_add, create_chunk_metadata}
 import utils.files
 import utils.hash_chunk
+import model.create_file_chunk_link
 
 object chunk_service {
   class InvalidMetadata extends Throwable
@@ -39,7 +40,7 @@ object chunk_service {
       create_new_chunk: (ChunkId, Int) => IO[Unit],
       hash_chunk: Array[Byte] => IO[ChunkId],
       store_file: (ChunkId, Array[Byte]) => IO[Unit],
-      create_file_chunk_link: (ChunkId, FileId, Int) => IO[Unit]
+      create_file_chunk_link: (FileId, ChunkId, Int) => IO[Unit]
   )(metadata: Part[IO], chunk: Part[IO]): IO[Response[IO]] = {
     for {
       metadataBytes <- metadata.body.compile.to(Array)
@@ -71,7 +72,7 @@ object chunk_service {
                     (for {
                       _ <- create_new_chunk(chunk_id, chunk_size)
                       _ <- store_file(chunk_id, chunk_bytes)
-                      _ <- create_file_chunk_link(chunk_id, file_id, chunk_seq)
+                      _ <- create_file_chunk_link(file_id, chunk_id, chunk_seq)
                     } yield ()).attempt.flatMap {
                       case Left(_) =>
                         InternalServerError(
@@ -91,14 +92,14 @@ object chunk_service {
     (id) => chunk_reference_add(id, 1),
     create_chunk_metadata,
     hash_chunk,
-    (chunk_id, bytes) =>
-      files.store_file(
-        bytes,
-        s"${chunk_id.slice(0, 2)}/${chunk_id.slice(2, 4)}/${chunk_id.slice(4, chunk_id.length)}"
-      ),
-    (chunk_id, file_id, chunk_seq: Int) =>
-      IO {
-        // TODO:
-      }
+    (chunk_id, bytes) => {
+      // files.store_file(
+      //   bytes,
+      //   s"${chunk_id.slice(0, 2)}/${chunk_id.slice(2, 4)}/${chunk_id.slice(4, chunk_id.length)}"
+      // )
+      // TODO: for now do nothing, remove this later to avoid lots of files
+      IO {}
+    },
+    create_file_chunk_link
   )
 }
