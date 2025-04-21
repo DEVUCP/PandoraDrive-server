@@ -24,7 +24,7 @@ import model.{get_file_metadata_by_file_id, create_file_metadata}
 import dto.FileCreationBody
 import utils.jwt.create_token
 import dto.{FileInitToken, ChunkMetadataMultipartUpload}
-import services.process_upload
+import services.chunk_service
 
 val file_routes = HttpRoutes
   .of[IO] {
@@ -84,7 +84,7 @@ val file_routes = HttpRoutes
                   ErrorResponse("Invalid request: No Metadata Received")
                 )
               case (Some(metadata), Some(chunk)) =>
-                process_upload(metadata, chunk)
+                chunk_service.upload_chunk(metadata, chunk)
             }
           )
         )
