@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import hashlib
 import json
 import mimetypes
 import os
@@ -87,7 +88,7 @@ def init_upload(body: dict) -> Tuple[str, int]:
     )  # TODO: Adjust accordingly to make the init calculate the regular chunk size used by the server
 
 
-def upload_chunk(chunk: bytes, chunk_sequence: int, chunk_size, token: str):
+def upload_chunk(chunk: bytes, chunk_sequence: int, chunk_size: int, token: str):
     metadata = {
         "chunk_sequence": chunk_sequence,
         "chunk_size": chunk_size,
@@ -95,12 +96,12 @@ def upload_chunk(chunk: bytes, chunk_sequence: int, chunk_size, token: str):
     }
     print(json.dumps(metadata))
     # Using multipart
+    print("Chunk SHA256:", hashlib.sha256(chunk).hexdigest())
     req = requests.post(
         f"{URL}/file/upload/chunk",
-        json=metadata,
         files={
             "metadata": (None, json.dumps(metadata), "application/json"),
-            "file": (f"chunk_{chunk_sequence}.bin", chunk, "application/octet-stream"),
+            "chunk": (f"chunk_{chunk_sequence}.bin", chunk, "application/octet-stream"),
         },
     )
     print(req.json())

@@ -13,17 +13,18 @@ import cats.effect.{IO, IOApp, ExitCode}
 import io.circe.syntax._
 import io.circe.generic.auto._
 import org.http4s.circe._
+import org.http4s.multipart.Multipart
+import org.http4s.circe.CirceEntityCodec._
+import org.http4s.server.Router
 
 import schema.initialize_schemas
 import model.get_folder_metadata_by_folder_id
 import types.{ErrorResponse, FileUploadMetadataInserted}
-import org.http4s.server.Router
 import model.{get_file_metadata_by_file_id, create_file_metadata}
-import org.http4s.circe.CirceEntityCodec._
 import dto.FileCreationBody
 import utils.jwt.create_token
-import dto.{FileInitToken, ChunkUploadBody}
-import org.http4s.multipart.Multipart
+import dto.{FileInitToken, ChunkMetadataMultipartUpload}
+import services.process_upload
 
 val file_routes = HttpRoutes
   .of[IO] {
@@ -69,7 +70,22 @@ val file_routes = HttpRoutes
         .mixedMultipartResource[IO]()
         .use(decoder =>
           req.decodeWith(decoder, strict = true)(multipart =>
-            Ok("Chunk Received")
+            val chunk_metadata =
+              multipart.parts.find(_.name.contains("metadata"))
+            val chunk =
+              multipart.parts.find(_.name.contains("chunk"))
+            (chunk_metadata, chunk) match {
+              case (_, None) =>
+                BadRequest(
+                  ErrorResponse("Invalid request: Chunk is not uploaded")
+                )
+              case (None, _) =>
+                BadRequest(
+                  ErrorResponse("Invalid request: No Metadata Received")
+                )
+              case (Some(metadata), Some(chunk)) =>
+                process_upload(metadata, chunk)
+            }
           )
         )
   }

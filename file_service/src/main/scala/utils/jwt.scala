@@ -45,19 +45,19 @@ object jwt {
     Some(Jwt.encode(claim, secret, JWT_ALGORITHM))
   }
 
-  def decode_token[A: io.circe.Decoder](token: String): (Option[A], String) = {
-    if (secret.isEmpty()) return (None, "Invalid Secret")
+  def decode_token[A: io.circe.Decoder](token: String): Either[String, A] = {
+    if (secret.isEmpty()) return Left("Invalid Secret")
 
     val decoded = Jwt.decode(token, secret, Seq(JWT_ALGORITHM))
     decoded match {
       case scala.util.Success(claim) =>
         decode[A](claim.content) match {
-          case Right(value) => (Some(value), "")
+          case Right(value) => Right(value)
           case Left(error) =>
-            (None, s"Failed to decode payload: ${error.getMessage}")
+            Left(s"Failed to decode payload: ${error.getMessage}")
         }
       case scala.util.Failure(exception) =>
-        (None, s"Invalid token: ${exception.getMessage}")
+        Left(s"Invalid token: ${exception.getMessage}")
     }
   }
 }
