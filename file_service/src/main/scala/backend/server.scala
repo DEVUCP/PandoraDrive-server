@@ -21,21 +21,18 @@ import utils.config
 
 object server extends IOApp:
 
-  // simple HTTP service/app
-
   private val router = Router(
     "/folder" -> folder_routes,
     "/file" -> file_routes
   ).orNotFound
 
-  // server run func
   def run(args: List[String]): IO[ExitCode] =
-    initialize_schemas()
-    EmberServerBuilder
-      .default[IO]
-      .withHost(ipv4"0.0.0.0")
-      .withPort(port"55551")
-      .withHttpApp(router)
-      .build
-      .use(_ => IO.never)
-      .as(ExitCode.Success)
+    initialize_schemas() *>
+      EmberServerBuilder
+        .default[IO]
+        .withHost(ipv4"0.0.0.0")
+        .withPort(port"55551")
+        .withHttpApp(router)
+        .build
+        .use(_ => IO.never)
+        .as(ExitCode.Success)

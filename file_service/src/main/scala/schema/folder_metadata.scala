@@ -22,9 +22,8 @@ case class FolderMetadata(
     status: String
 )
 
-def create_folder_metadata_table(): Unit =
-  val create: ConnectionIO[Int] =
-    sql"""
+def create_folder_metadata_table(): IO[Unit] =
+  sql"""
      create table if not exists folder_metadata (
       folder_id INTEGER PRIMARY KEY AUTOINCREMENT,
       parent_folder_id int NULL,
@@ -35,6 +34,4 @@ def create_folder_metadata_table(): Unit =
       owner_id int NOT NULL,
       status TEXT NOT NULL CHECK (status in ('UploadStart', 'Uploaded', 'Flawed')),
       FOREIGN KEY(parent_folder_id) REFERENCES folder_metadata(folder_id)
-     );""".update.run
-
-  create.transact(transactor).unsafeRunSync()
+     );""".update.run.void.transact(transactor)

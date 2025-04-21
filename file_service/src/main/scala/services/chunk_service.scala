@@ -33,12 +33,13 @@ import utils.hash_chunk
 object chunk_service {
   class InvalidMetadata extends Throwable
 
-  private def process_upload_curried(
+  def process_upload_curried(
       chunk_exists: ChunkId => IO[Boolean],
       chunk_reference_add: ChunkId => IO[Unit],
       create_new_chunk: (ChunkId, Int) => IO[Unit],
       hash_chunk: Array[Byte] => IO[ChunkId],
-      store_file: (ChunkId, Array[Byte]) => IO[Unit]
+      store_file: (ChunkId, Array[Byte]) => IO[Unit],
+      create_file_chunk_link: (ChunkId, FileId, Int) => IO[Unit]
   )(metadata: Part[IO], chunk: Part[IO]): IO[Response[IO]] = {
     for {
       metadataBytes <- metadata.body.compile.to(Array)
@@ -70,6 +71,7 @@ object chunk_service {
                     (for {
                       _ <- create_new_chunk(chunk_id, chunk_size)
                       _ <- store_file(chunk_id, chunk_bytes)
+                      _ <- create_file_chunk_link(chunk_id, file_id, chunk_seq)
                     } yield ()).attempt.flatMap {
                       case Left(_) =>
                         InternalServerError(
@@ -93,6 +95,10 @@ object chunk_service {
       files.store_file(
         bytes,
         s"${chunk_id.slice(0, 2)}/${chunk_id.slice(2, 4)}/${chunk_id.slice(4, chunk_id.length)}"
-      )
+      ),
+    (chunk_id, file_id, chunk_seq: Int) =>
+      IO {
+        // TODO:
+      }
   )
 }

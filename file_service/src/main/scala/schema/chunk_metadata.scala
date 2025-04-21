@@ -19,14 +19,11 @@ case class ChunkMetadata(
     chunk_size: Int
 )
 
-def create_chunk_metadata_table(): Unit =
-  val create: ConnectionIO[Int] =
-    sql"""
+def create_chunk_metadata_table(): IO[Unit] =
+  sql"""
     CREATE TABLE IF NOT EXISTS chunk_metadata (
         chunk_id     VARCHAR(64) PRIMARY KEY,
         byte_size    INT NOT NULL,
         ref_count    INT DEFAULT 1
     );
-  """.update.run
-
-  create.transact(transactor).unsafeRunSync()
+  """.update.run.void.transact(transactor)
