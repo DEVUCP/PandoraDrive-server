@@ -33,8 +33,11 @@ object QuizUtils {
       case _ => fileQuizBank.take(3)
     }
   }
-  // TODO: Format and present quiz question with options
-  def presentQuizQuestion(q: (String, List[String], String)): String = ???
+  def presentQuizQuestion(q: (String, List[String], String)): String = {
+    val (question, options, _) = q
+    val formattedOptions = options.zipWithIndex.map { case (opt, i) => s"${('A' + i).toChar}. $opt" }.mkString("\n")
+    s"$question\n$formattedOptions"
+  }
   // TODO: Evaluate user's answer against the correct answer
   def evaluateQuizAnswer(userAnswer: String, correctAnswer: String): Boolean = ???
   // TODO: Summarize the results of the quiz and calculate accuracy
