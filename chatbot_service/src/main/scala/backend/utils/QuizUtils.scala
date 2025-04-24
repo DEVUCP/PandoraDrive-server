@@ -29,8 +29,8 @@ object QuizUtils {
   )
   def selectQuizQuestions(topic: String): List[(String, List[String], String)] = {
     topic.toLowerCase match {
-      case "file" | "files" | "storage" => fileQuizBank
-      case _ => fileQuizBank.take(3)
+      case "quiz" => fileQuizBank
+      case _ => List()
     }
   }
   def presentQuizQuestion(q: (String, List[String], String)): String = {
