@@ -1,6 +1,8 @@
 package backend.core
+
 import backend.utils.AnalyticsUtils
 import backend.utils.QuizUtils
+
 object QuizEngine {
   def startQuiz(topic: String): String = {
     val questions = QuizUtils.selectQuizQuestions(topic)
