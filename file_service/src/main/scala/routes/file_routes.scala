@@ -30,33 +30,37 @@ import dto.FileCompletionBody
 val file_routes = HttpRoutes
   .of[IO] {
     case GET -> Root :? IdQueryParamMatcher(id) =>
-      get_file_metadata_by_file_id(id) match {
-        case (Some(file), _) => Ok(file.asJson)
-        case (_, Some(e)) =>
-          BadRequest(ErrorResponse(e).asJson)
-        case (None, None) =>
-          NotFound(ErrorResponse("File not found").asJson)
+      get_file_metadata_by_file_id(id).flatMap {
+        case Right(file) =>
+          Ok(file.asJson)
+
+        case Left(errorMsg) =>
+          errorMsg match {
+            case msg if msg.startsWith("No file found") =>
+              NotFound(ErrorResponse(msg).asJson)
+            case other =>
+              BadRequest(ErrorResponse(other).asJson)
+          }
       }
     case req @ POST -> Root / "upload" / "init" =>
       req.as[FileCreationBody].attempt.flatMap {
         case Left(error) =>
           BadRequest(ErrorResponse(s"Invalid body: ${error.getMessage}").asJson)
+
         case Right(body) =>
-          val err: Either[String, Long] = create_file_metadata(
-            body
-          ) // TODO: Decouple this mess, and make create_file_metadata take multiple arguments, regardless of file body
-          err match {
+          create_file_metadata(body).flatMap {
             case Left(err) =>
-              BadRequest(ErrorResponse(s"Error Ocurred: $err"))
-            case Right(file_id) => {
-              val token = create_token(UploadToken(file_id))
-              token match {
+              BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
+
+            case Right(file_id) =>
+              create_token(UploadToken(file_id)) match {
                 case None =>
                   BadRequest(
                     ErrorResponse(
                       "Failed to create token. If you are a developer, check console output"
-                    )
+                    ).asJson
                   )
+
                 case Some(valid_token) =>
                   Ok(
                     FileUploadMetadataInserted(
@@ -65,7 +69,6 @@ val file_routes = HttpRoutes
                     ).asJson
                   )
               }
-            }
           }
       }
     case req @ POST -> Root / "upload" / "chunk" =>

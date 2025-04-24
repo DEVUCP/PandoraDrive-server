@@ -16,8 +16,7 @@ def create_file_chunk_link(
     chunk_id: ChunkId,
     chunk_seq: Int
 ): IO[Unit] =
-  IO.println("Creating file chunk") *>
-    sql"""
+  sql"""
   insert into file_chunk(file_id, chunk_id, chunk_seq) values($file_id, $chunk_id, $chunk_seq)
   """.update.run.void.transact(transactor)
 

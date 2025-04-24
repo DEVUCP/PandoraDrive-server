@@ -21,13 +21,19 @@ import model.get_folder_metadata_by_folder_id
 import types.ErrorResponse
 import org.http4s.server.Router
 
-val folder_routes = HttpRoutes
-  .of[IO] { case req @ GET -> Root :? IdQueryParamMatcher(id) =>
-    get_folder_metadata_by_folder_id(id) match {
-      case (Some(folder), None) => Ok(folder.asJson)
-      case (None, None) =>
-        NotFound(ErrorResponse("Folder not found").asJson)
-      case (None, Some(e)) =>
-        BadRequest(ErrorResponse(e).asJson)
+val folder_routes = HttpRoutes.of[IO] {
+  case req @ GET -> Root :? IdQueryParamMatcher(id) =>
+    get_folder_metadata_by_folder_id(id).flatMap {
+      case Right(folder) =>
+        Ok(folder.asJson)
+
+      case Left(errMsg) =>
+        // Optional: differentiate error types for appropriate HTTP status codes
+        errMsg match {
+          case msg if msg.startsWith("No folder exists") =>
+            NotFound(ErrorResponse(msg).asJson)
+          case other =>
+            BadRequest(ErrorResponse(other).asJson)
+        }
     }
-  }
+}

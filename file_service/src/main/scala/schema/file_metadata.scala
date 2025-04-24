@@ -40,16 +40,3 @@ def create_file_metadata_table(): IO[Unit] =
       status TEXT NOT NULL CHECK (status in ('UploadStart', 'Uploaded', 'Flawed')),
       FOREIGN KEY(folder_id) REFERENCES folder_metadata(file_id)
      );""".update.run.void.transact(transactor)
-
-// def create_root_directory(): Unit =
-//   val rs: List[Int] = sql"SELECT 1 FROM folders WHERE parent_folder_id IS NULL"
-//     .query[Int]
-//     .to[List]
-//     .transact(transactor)
-//     .unsafeRunSync()
-//
-//   rs match {
-//     case Nil =>
-//       sql"INSERT INTO folder_metadata(parent_folder_id, folder_name, uploaded_at, created_at, modified_at) "
-//     case _::_ => ???
-//   }

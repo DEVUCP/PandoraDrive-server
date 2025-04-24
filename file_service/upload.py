@@ -7,10 +7,6 @@ import os
 import sys
 from typing import Tuple
 
-import httplib2
-
-httplib2.debuglevel = 1
-
 import requests
 
 URL = "http://localhost:55551"

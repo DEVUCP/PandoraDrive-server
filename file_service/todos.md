@@ -1,7 +1,7 @@
-- [ ] Create Chunk Metadata DB
-- [ ] Implement chunk upload endpoint
+- [x] Create Chunk Metadata DB
+- [x] Implement chunk upload endpoint
     - A chunk must have a reference count and a garbage collector to remove unreferenced chunks. This is how I choose to do it
 - [ ] Implement chunk checkpon endpoint
-- [ ] Create per-chunk checksum 
+- [x] Create per-chunk checksum 
 - [ ] Implement resumable uploads
-- [ ] Find an alternative to unsafeRunSync
+- [x] Find an alternative to unsafeRunSync

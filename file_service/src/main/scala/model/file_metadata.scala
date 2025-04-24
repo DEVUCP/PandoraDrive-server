@@ -14,70 +14,68 @@ import dto.{FileCreationBody, validate_file_creation_body}
 import types.FileId
 def get_file_metadata_by_file_id(
     id: Int
-): (Option[FileMetadata], Option[String]) = {
-
-  val result: Either[Throwable, List[FileMetadata]] =
-    sql"""
+): IO[Either[String, FileMetadata]] =
+  sql"""
       select file_id, folder_id, file_name, size_bytes, mime_type, owner_id, status, uploaded_at, created_at, modified_at
       from file_metadata
       where file_id = $id;
     """
-      .query[FileMetadata]
-      .to[List]
-      .transact(transactor)
-      .attempt
-      .unsafeRunSync()
+    .query[FileMetadata]
+    .to[List]
+    .transact(transactor)
+    .attempt
+    .map {
+      case Right(Nil)      => Left(s"No file found with ID $id")
+      case Right(h :: Nil) => Right(h)
+      case Right(_)        => Left(s"Multiple files with same file_id?")
+      case Left(e)         => Left(s"Database error: ${e.getMessage}")
+    }
 
-  result match {
-    case Right(Nil)      => (None, None)
-    case Right(h :: Nil) => (Some(h), None)
-    case Right(_)        => (None, Some("There cannot be more than one file"))
-    case Left(e)         => (None, Some(s"Database error: ${e.getMessage}"))
-  }
-}
+def create_file_metadata(body: FileCreationBody): IO[Either[String, Long]] = {
+  implicit val bigIntPut: Put[BigInt] =
+    Put[BigDecimal].contramap(BigDecimal(_))
 
-def create_file_metadata(body: FileCreationBody): Either[String, FileId] = {
-  val valid = validate_file_creation_body(body)
-  valid match {
-    case Some(err) => return Left(err)
-    case _ => {
-      implicit val bigIntPut: Put[BigInt] =
-        Put[BigDecimal].contramap(BigDecimal(_))
-      val uploaded_at = java.time.Instant.now().toString
+  for {
+    validation <- validate_file_creation_body(body)
+    result <- {
+      val (valid, err) = validation
+      if (!valid) IO.pure(Left(err))
+      else {
+        val uploaded_at = java.time.Instant.now().toString
 
-      val insertQuery =
-        sql"""
-      insert into file_metadata (
-        file_name, folder_id, size_bytes, mime_type,
-        owner_id, status, created_at, uploaded_at, modified_at
-      )
-      values (
-        ${body.file_name}, ${body.folder_id}, ${body.size_bytes},
-        ${body.mime_type}, ${body.owner_id}, 'UploadStart',
-        ${body.created_at}, $uploaded_at, ${body.modified_at}
-      )
-    """
+        val insertQuery =
+          sql"""
+            insert into file_metadata (
+              file_name, folder_id, size_bytes, mime_type,
+              owner_id, status, created_at, uploaded_at, modified_at
+            )
+            values (
+              ${body.file_name}, ${body.folder_id}, ${body.size_bytes},
+              ${body.mime_type}, ${body.owner_id}, 'UploadStart',
+              ${body.created_at}, $uploaded_at, ${body.modified_at}
+            )
+          """
 
-      val create: ConnectionIO[Option[Long]] =
-        insertQuery.update
-          .withGeneratedKeys[Long]("id")
-          .compile
-          .last
+        val insertAction: ConnectionIO[Option[Long]] =
+          insertQuery.update
+            .withGeneratedKeys[Long]("id")
+            .compile
+            .last
 
-      val result: Either[Throwable, Option[Long]] =
-        create.transact(transactor).attempt.unsafeRunSync()
-
-      result match {
-        case Right(Some(id)) => Right(id)
-        case Right(None)     => Left("Insert failed: no ID returned")
-        case Left(e) =>
-          println(s"-- ERROR: $e")
-          Left(
-            "An error occurred. If you are a developer, check console log output"
-          )
+        insertAction
+          .transact(transactor)
+          .attempt
+          .map {
+            case Right(Some(id)) => Right(id)
+            case Right(None)     => Left("Insert failed: no ID returned")
+            case Left(e) =>
+              Left(
+                s"Database error: ${e.getMessage}"
+              )
+          }
       }
     }
-  }
+  } yield result
 }
 
 def file_complete_status(file_id: FileId): IO[Unit] = {
