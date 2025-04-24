@@ -1,7 +1,4 @@
 package backend.core
-
-// import backend.utils.AnalyticsUtils
-
 object AnalyticsEngine {
   def analyzeInteractions(log: List[(Int, String, String)]): String = {
     val total = log.length
@@ -10,7 +7,12 @@ object AnalyticsEngine {
     val greetingsCount = log.count(_._2 == "greeting")
     s"Total: $total, Quiz: $quizCount, Analytics: $analyticsCount, Greetings: $greetingsCount"
   }
-
-  // TODO: Analyze quiz responses and return counts for total, correct, and incorrect answers
-  def analyzeQuizPerformance(log: List[(Int, String, String)]): String = ???
+  def analyzeQuizPerformance(log: List[(Int, String, String)]): String = {
+    val quizResponses = log.filter(_._2 == "quiz")
+    val (correct, incorrect) = quizResponses.map(_._3.toLowerCase).partition(_ == "correct")
+    val total = quizResponses.length
+    val correctCount = correct.length
+    val incorrectCount = incorrect.length
+    s"Total Quiz Responses: $total, Correct: $correctCount, Incorrect: $incorrectCount"
+  }
 }
