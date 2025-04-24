@@ -1,12 +1,15 @@
 package backend.core
+
 import backend.utils.AnalyticsUtils
 import backend.utils.InputParser
 import backend.utils.PatternUtils
 import backend.utils.QuizUtils
 import backend.utils.UserPreferences
+
 object ChatbotEngine {
   def greetUser(): String = 
     "Welcome to PandoraDrive! Ask me about your files or start a quiz by typing 'start quiz'."
+
   def handleUserInput(input: String): String = {
     val cleaned = InputParser.cleanInput(input)
 
