@@ -38,8 +38,9 @@ object QuizUtils {
     val formattedOptions = options.zipWithIndex.map { case (opt, i) => s"${('A' + i).toChar}. $opt" }.mkString("\n")
     s"$question\n$formattedOptions"
   }
-  // TODO: Evaluate user's answer against the correct answer
-  def evaluateQuizAnswer(userAnswer: String, correctAnswer: String): Boolean = ???
+  def evaluateQuizAnswer(userAnswer: String, correctAnswer: String): Boolean = {
+    userAnswer.trim.equalsIgnoreCase(correctAnswer.trim)
+  }
   // TODO: Summarize the results of the quiz and calculate accuracy
   def summarizeQuizResults(answers: List[Boolean]): String = ???
 }
