@@ -1,7 +1,5 @@
 package backend.utils
-
 object QuizUtils {
-  // Example: (question, options, correct answer)
   val fileQuizBank: List[(String, List[String], String)] = List(
     (
       "Which file type usually contains compressed data?",
@@ -29,16 +27,16 @@ object QuizUtils {
       ".mp3"
     )
   )
-
-  // TODO: Select quiz questions based on the topic
-  def selectQuizQuestions(topic: String): List[(String, List[String], String)] = ???
-
+  def selectQuizQuestions(topic: String): List[(String, List[String], String)] = {
+    topic.toLowerCase match {
+      case "file" | "files" | "storage" => fileQuizBank
+      case _ => fileQuizBank.take(3)
+    }
+  }
   // TODO: Format and present quiz question with options
   def presentQuizQuestion(q: (String, List[String], String)): String = ???
-
   // TODO: Evaluate user's answer against the correct answer
   def evaluateQuizAnswer(userAnswer: String, correctAnswer: String): Boolean = ???
-
   // TODO: Summarize the results of the quiz and calculate accuracy
   def summarizeQuizResults(answers: List[Boolean]): String = ???
 }
