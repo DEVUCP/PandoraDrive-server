@@ -1,5 +1,7 @@
 package backend.core
+
 import backend.utils.AnalyticsUtils
+
 object AnalyticsEngine {
   def analyzeInteractions(log: List[(Int, String, String)]): String = {
     val total = log.length
@@ -8,6 +10,7 @@ object AnalyticsEngine {
     val greetingsCount = log.count(_._2 == "greeting")
     s"Total: $total, Quiz: $quizCount, Analytics: $analyticsCount, Greetings: $greetingsCount"
   }
+
   def analyzeQuizPerformance(log: List[(Int, String, String)]): String = {
     val quizResponses = log.filter(_._2 == "quiz")
     val (correct, incorrect) = quizResponses.map(_._3.toLowerCase).partition(_ == "correct")
