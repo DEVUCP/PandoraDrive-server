@@ -41,6 +41,11 @@ object QuizUtils {
   def evaluateQuizAnswer(userAnswer: String, correctAnswer: String): Boolean = {
     userAnswer.trim.equalsIgnoreCase(correctAnswer.trim)
   }
-  // TODO: Summarize the results of the quiz and calculate accuracy
-  def summarizeQuizResults(answers: List[Boolean]): String = ???
+  def summarizeQuizResults(answers: List[Boolean]): String = {
+    val total = answers.length
+    val correct = answers.count(identity)
+    val incorrect = total - correct
+    val accuracy = if (total > 0) (correct.toDouble / total) * 100 else 0.0
+    f"Quiz Completed! Total: $total, Correct: $correct, Incorrect: $incorrect, Accuracy: $accuracy%.2f%%"
+  }
 }
