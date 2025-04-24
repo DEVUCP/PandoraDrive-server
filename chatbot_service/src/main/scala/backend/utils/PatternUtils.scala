@@ -5,10 +5,8 @@ object PatternUtils {
     val words = input.toLowerCase.split("\\s+").toSet
     greetings.exists(words.contains)
   }
-  def isQuizRequest(input: String): Boolean = {
+  def isQuizRequest(input: String): Boolean =
     input.toLowerCase.contains("quiz")
-  }
-  def isAnalyticsRequest(input: String): Boolean = {
+  def isAnalyticsRequest(input: String): Boolean =
     input.toLowerCase.contains("analytics")
-  }
 }
