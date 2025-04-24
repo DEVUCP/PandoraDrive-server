@@ -1,6 +1,6 @@
 package backend.core
 
-import backend.utils.{InputParser, PatternUtils, QuizUtils, AnalyticsUtils, Preferences}
+import backend.utils.{InputParser, PatternUtils, QuizUtils, AnalyticsUtils, UserPreferences}
 
 object ChatbotEngine {
   def greetUser(): String = 
@@ -16,10 +16,10 @@ object ChatbotEngine {
         val log = AnalyticsUtils.getInteractionLog()
         AnalyticsEngine.analyzeInteractions(log) + "\n" + AnalyticsEngine.analyzeQuizPerformance(log)
       case "set dark mode"                       =>
-        Preferences.storeUserPreferences("dark mode")
+        UserPreferences.storeUserPreferences("dark mode")
         "Got it! Preference saved: dark mode"
       case "my preference" =>
-        Preferences.getUserPreferences().getOrElse("No preference set.")
+        UserPreferences.getUserPreferences().getOrElse("No preference set.")
       case _ =>
         s"I'm not sure how to help with that. Try asking for a quiz or analytics!"
     }
