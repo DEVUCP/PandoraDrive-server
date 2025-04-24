@@ -2,39 +2,19 @@ package backend.core
 import backend.utils.AnalyticsUtils
 import backend.utils.QuizUtils
 object QuizEngine {
-  private val sampleQuizzes = Map(
-    "scala" -> List(
-      ("What is a case class in Scala?", "A special class for immutable data"),
-      ("What does 'val' define?", "An immutable variable"),
-      ("What collection is immutable by default?", "List")
-    ),
-    "general" -> List(
-      ("What is the capital of France?", "Paris"),
-      ("How many continents are there?", "7"),
-      ("What gas do plants absorb?", "Carbon dioxide")
-    )
-  )
   def startQuiz(topic: String): String = {
-    val quiz = sampleQuizzes.getOrElse(topic.toLowerCase, sampleQuizzes("general"))
-    var correct = 0
-    var incorrect = 0
-    var logs = List.empty[(Int, String, String)]
-    var id = 1
-    println(s"Starting quiz on '$topic'...")
-    quiz.foreach {
-      case (question, correctAnswer) => println(s"Q: $question")
-      val userAnswer = "dummy"
-      if (userAnswer.trim.toLowerCase == correctAnswer.toLowerCase) {
-        correct += 1
-        logs = logs :+ (id, "quiz", "correct")
-      }
-      else {
-        incorrect += 1
-        logs = logs :+ (id, "quiz", "incorrect")
-      }
-      id += 1
+    val questions = QuizUtils.selectQuizQuestions(topic)
+    if (questions.isEmpty) return "No quiz available for that topic. Try 'scala'."
+
+    val results = questions.map { case (q, options, correct) =>
+      val formattedQ = s"$q\nOptions: ${options.mkString(", ")}"
+      println(formattedQ) // Or pass to front-end
+      val userAnswer = scala.io.StdIn.readLine("> ") // Replace with real input hook in prod
+      val isCorrect = QuizUtils.evaluateQuizAnswer(userAnswer, correct)
+      AnalyticsUtils.logInteraction(q, s"User answered: $userAnswer | Correct: $correct")
+      isCorrect
     }
-    val total = correct + incorrect
-    s"Quiz completed! Total: $total, Correct: $correct, Incorrect: $incorrect"
+
+    QuizUtils.summarizeQuizResults(results)
   }
 }
