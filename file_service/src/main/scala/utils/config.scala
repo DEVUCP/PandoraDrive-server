@@ -1,7 +1,12 @@
 package utils
 
-val config =
-  Map[String, Option[String]](
-    "JWT_SECRET" -> sys.env.get("JWT_SECRET"),
-    "DB_URL" -> sys.env.get("DB_URL")
-  )
+object config {
+  val JWT_SECRET: String = sys.env.getOrElse("JWT_SECRET", "MOCK_SECRET")
+  val ENCRYPT_SECRET: String =
+    sys.env.getOrElse("ENCRYPT_SECRET", "MOCK_SECRET")
+  val DB_URL: String = sys.env.getOrElse("DB_URL", "")
+  val CHUNK_SIZE: Int =
+    sys.env.get("CHUNK_SIZE").flatMap(_.toIntOption).getOrElse(1024 * 1024)
+  val JWT_EXPIRY_IN_SECONDS =
+    sys.env.get("JWT_EXPIRY_IN_SECONDS").flatMap(_.toIntOption).getOrElse(3600)
+}

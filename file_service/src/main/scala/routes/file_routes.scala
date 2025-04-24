@@ -23,8 +23,9 @@ import types.{ErrorResponse, FileUploadMetadataInserted}
 import model.{get_file_metadata_by_file_id, create_file_metadata}
 import dto.FileCreationBody
 import utils.jwt.create_token
-import dto.{FileInitToken, ChunkMetadataMultipartUpload}
+import dto.{UploadToken, ChunkMetadataMultipartUpload}
 import services.chunk_service
+import dto.FileCompletionBody
 
 val file_routes = HttpRoutes
   .of[IO] {
@@ -41,12 +42,14 @@ val file_routes = HttpRoutes
         case Left(error) =>
           BadRequest(ErrorResponse(s"Invalid body: ${error.getMessage}").asJson)
         case Right(body) =>
-          val err: Either[String, Long] = create_file_metadata(body)
+          val err: Either[String, Long] = create_file_metadata(
+            body
+          ) // TODO: Decouple this mess, and make create_file_metadata take multiple arguments, regardless of file body
           err match {
             case Left(err) =>
               BadRequest(ErrorResponse(s"Error Ocurred: $err"))
             case Right(file_id) => {
-              val token = create_token(FileInitToken(file_id))
+              val token = create_token(UploadToken(file_id))
               token match {
                 case None =>
                   BadRequest(
@@ -88,4 +91,9 @@ val file_routes = HttpRoutes
             }
           )
         )
+    case req @ POST -> Root / "upload" / "complete" =>
+      req.as[FileCompletionBody].attempt.flatMap {
+        case Left(_)     => BadRequest(ErrorResponse("Invalid Body").asJson)
+        case Right(body) => chunk_service.upload_complete(body)
+      }
   }

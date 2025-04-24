@@ -30,6 +30,8 @@ def upload_file(file_path: str):
 
     try:
         token, chunk_size = init_upload(stat)
+        print("Token: ", token)
+        print("Chunk Size: ", chunk_size)
     except requests.exceptions.RequestException as e:
         print(f"Error: Failed to initialize upload - {str(e)}", file=sys.stderr)
         sys.exit(1)
@@ -50,12 +52,21 @@ def upload_file(file_path: str):
 
                 upload_chunk(
                     chunk=chunk,
-                    chunk_sequence=chunk_index + 1,
+                    chunk_sequence=chunk_index,
                     token=token,
                     chunk_size=current_chunk_size,  # Send actual chunk size
                 )
     except:
         sys.exit(1)
+
+    complete_request(token)
+
+
+def complete_request(token: str):
+    body = {"token": token}
+    req = requests.post(URL + "/file/upload/complete", json=body)
+    print(f"Complete Response Done. Status: {req.status_code}")
+    print(req.content)
 
 
 def gather_stat(file_path: str):
@@ -89,23 +100,22 @@ def init_upload(body: dict) -> Tuple[str, int]:
 
 
 def upload_chunk(chunk: bytes, chunk_sequence: int, chunk_size: int, token: str):
+    """Upload one Chunk with the specific sequence, chunk_size"""
     metadata = {
         "chunk_sequence": chunk_sequence,
         "chunk_size": chunk_size,
         "token": token,
     }
+
     print(json.dumps(metadata))
-    # Using multipart
     print("Chunk SHA256:", hashlib.sha256(chunk).hexdigest())
-    req = requests.post(
+    requests.post(
         f"{URL}/file/upload/chunk",
         files={
             "metadata": (None, json.dumps(metadata), "application/json"),
             "chunk": (f"chunk_{chunk_sequence}.bin", chunk, "application/octet-stream"),
         },
     )
-    print(req.json())
-    assert req.status_code == 200, f"Failed to upload chunk {chunk_sequence + 1}"
 
 
 def main():

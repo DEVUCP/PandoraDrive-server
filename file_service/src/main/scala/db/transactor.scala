@@ -12,12 +12,6 @@ import utils.config
 
 val transactor: Transactor[IO] = Transactor.fromDriverManager[IO](
   driver = "org.sqlite.JDBC", // driver classname
-  url = {
-    val res = config("DB_URL")
-    res match {
-      case None      => ""
-      case Some(url) => url
-    }
-  }, // connect URL
+  url = config.DB_URL, // connect URL
   logHandler = None
 )

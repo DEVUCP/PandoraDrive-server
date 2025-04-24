@@ -23,13 +23,18 @@ import types.ErrorResponse
 import dto.ChunkMetadataMultipartUpload
 import utils.jwt
 import types.FileId
-import dto.FileInitToken
+import dto.UploadToken
 import types.ChunkId
 import model.chunk_exists
 import model.{chunk_reference_add, create_chunk_metadata}
 import utils.files
 import utils.hash_chunk
-import model.create_file_chunk_link
+import model.{
+  create_file_chunk_link,
+  is_file_chunks_uploaded,
+  file_complete_status
+}
+import dto.FileCompletionBody
 
 object chunk_service {
   class InvalidMetadata extends Throwable
@@ -53,11 +58,11 @@ object chunk_service {
         case Right(
               ChunkMetadataMultipartUpload(token, chunk_seq, chunk_size)
             ) =>
-          jwt.decode_token[FileInitToken](token) match {
+          jwt.decode_token[UploadToken](token) match {
             case Left(_) =>
               BadRequest(ErrorResponse("Invalid or expired token"))
 
-            case Right(FileInitToken(file_id)) =>
+            case Right(UploadToken(file_id)) =>
               for {
                 chunk_bytes <- chunk.body.compile.to(Array)
                 chunk_id <- hash_chunk(chunk_bytes)
@@ -66,6 +71,7 @@ object chunk_service {
                   if (exists) {
                     for {
                       _ <- chunk_reference_add(chunk_id)
+                      _ <- create_file_chunk_link(file_id, chunk_id, chunk_seq)
                       resp <- Ok()
                     } yield resp
                   } else {
@@ -93,13 +99,32 @@ object chunk_service {
     create_chunk_metadata,
     hash_chunk,
     (chunk_id, bytes) => {
-      // files.store_file(
-      //   bytes,
-      //   s"${chunk_id.slice(0, 2)}/${chunk_id.slice(2, 4)}/${chunk_id.slice(4, chunk_id.length)}"
-      // )
-      // TODO: for now do nothing, remove this later to avoid lots of files
-      IO {}
+      files.store_file(
+        bytes,
+        s"${chunk_id.slice(0, 2)}/${chunk_id.slice(2, 4)}/${chunk_id.slice(4, chunk_id.length)}"
+      )
     },
     create_file_chunk_link
   )
+
+  def upload_complete_curried(
+      is_file_chunks_uploaded: FileId => IO[Boolean],
+      file_complete_status: FileId => IO[Unit]
+  )(token: String): IO[Response[IO]] =
+    jwt.decode_token[UploadToken](token) match {
+      case Left(_) => BadRequest("Invalid body")
+      case Right(UploadToken(file_id)) =>
+        is_file_chunks_uploaded(file_id).flatMap {
+          case false => NotFound(ErrorResponse("Chunks are not uploaded"))
+          case true =>
+            file_complete_status(file_id) *>
+              Ok()
+        }
+    }
+
+  def upload_complete(body: FileCompletionBody) =
+    upload_complete_curried(
+      is_file_chunks_uploaded,
+      file_complete_status
+    )(body.token)
 }

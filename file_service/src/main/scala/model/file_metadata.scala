@@ -80,6 +80,12 @@ def create_file_metadata(body: FileCreationBody): Either[String, FileId] = {
   }
 }
 
+def file_complete_status(file_id: FileId): IO[Unit] = {
+  sql"""
+  update file_metadata set status='Uploaded' where file_id=$file_id
+  """.update.run.void.transact(transactor)
+}
+
 // TODO:  Create indices
 /** CREATE INDEX idx_folders_parent ON folders(parent_folder_id); CREATE INDEX
   * idx_files_folder ON files(folder_id); CREATE INDEX idx_files_status ON
