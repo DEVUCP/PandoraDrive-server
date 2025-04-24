@@ -4,6 +4,5 @@ object Preferences {
   def storeUserPreferences(pref: String): Unit = {
     userPref = Some(pref.trim.toLowerCase)
   }
-  // TODO: Retrieve the stored user preference, if it exists
-  def getUserPreferences(): Option[String] = ???
+  def getUserPreferences(): Option[String] = userPref
 }
