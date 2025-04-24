@@ -1,4 +1,5 @@
 package backend.core
+
 object ChatbotCore {
   def generateResponse(query: String): String = {
     query.toLowerCase match {
