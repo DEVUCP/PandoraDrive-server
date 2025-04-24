@@ -33,11 +33,8 @@ object QuizUtils {
       case _ => List()
     }
   }
-  def presentQuizQuestion(q: (String, List[String], String)): String = {
-    val (question, options, _) = q
-    val formattedOptions = options.zipWithIndex.map { case (opt, i) => s"${('A' + i).toChar}. $opt" }.mkString("\n")
-    s"$question\n$formattedOptions"
-  }
+  def presentQuizQuestion(q: (String, List[String], String)): String =
+    s"${q._1}\nOptions: ${q._2.mkString(", ")}"
   def evaluateQuizAnswer(userAnswer: String, correctAnswer: String): Boolean = {
     userAnswer.trim.equalsIgnoreCase(correctAnswer.trim)
   }
