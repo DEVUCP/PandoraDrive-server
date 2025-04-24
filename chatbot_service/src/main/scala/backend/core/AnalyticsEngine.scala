@@ -1,4 +1,5 @@
 package backend.core
+// import backend.utils.AnalyticsUtils
 object AnalyticsEngine {
   def analyzeInteractions(log: List[(Int, String, String)]): String = {
     val total = log.length
