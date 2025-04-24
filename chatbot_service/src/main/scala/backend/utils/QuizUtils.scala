@@ -1,4 +1,5 @@
 package backend.utils
+
 object QuizUtils {
   val fileQuizBank: List[(String, List[String], String)] = List(
     (
@@ -27,17 +28,22 @@ object QuizUtils {
       ".mp3"
     )
   )
-  def selectQuizQuestions(topic: String): List[(String, List[String], String)] = {
+
+  def selectQuizQuestions(
+      topic: String
+  ): List[(String, List[String], String)] = {
     topic.toLowerCase match {
       case "quiz" => fileQuizBank
-      case _ => List()
+      case _      => List()
     }
   }
+
   def presentQuizQuestion(q: (String, List[String], String)): String =
     s"${q._1}\nOptions: ${q._2.mkString(", ")}"
-  def evaluateQuizAnswer(userAnswer: String, correctAnswer: String): Boolean = {
+
+  def evaluateQuizAnswer(userAnswer: String, correctAnswer: String): Boolean =
     userAnswer.trim.equalsIgnoreCase(correctAnswer.trim)
-  }
+
   def summarizeQuizResults(answers: List[Boolean]): String = {
     val total = answers.length
     val correct = answers.count(identity)
