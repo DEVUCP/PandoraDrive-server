@@ -6,6 +6,5 @@ object AnalyticsUtils {
     counter += 1
     log = log :+ (counter, userInput, chatbotResponse)
   }
-  // TODO: Return the full list of logged interactions with sequence numbers
-  def getInteractionLog(): List[(Int, String, String)] = ???
+  def getInteractionLog(): List[(Int, String, String)] = log
 }
