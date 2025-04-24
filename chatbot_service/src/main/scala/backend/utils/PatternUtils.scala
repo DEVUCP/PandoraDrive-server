@@ -7,6 +7,7 @@ object PatternUtils {
   def isQuizRequest(input: String): Boolean = {
     input.toLowerCase.contains("quiz")
   }
-  // TODO: Check if the input contains the word "analytics"
-  def isAnalyticsRequest(input: String): Boolean = ???
+  def isAnalyticsRequest(input: String): Boolean = {
+    input.toLowerCase.contains("analytics")
+  }
 }
