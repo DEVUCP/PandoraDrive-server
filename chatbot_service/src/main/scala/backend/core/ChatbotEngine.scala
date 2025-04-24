@@ -5,15 +5,24 @@ import backend.utils.PatternUtils
 import backend.utils.QuizUtils
 import backend.utils.UserPreferences
 object ChatbotEngine {
-  def greetUser(): String = "Welcome, User! How can I help you today?"
+  def greetUser(): String = 
+    "Welcome to PandoraDrive! Ask me about your files or start a quiz by typing 'start quiz'."
   def handleUserInput(input: String): String = {
-    val cleanedInput = input.trim.toLowerCase
-    cleanedInput match {
-      case input if input.contains("hello") || input.contains("hi") || input.contains("hey") => ChatbotCore.generateResponse(input)
-      case input if input.contains("quiz") => ChatbotCore.generateResponse(input)
-      case input if input.contains("analytics") || input.contains("stats") => ChatbotCore.generateResponse(input)
-      case input if input.contains("help") || input.contains("support") => ChatbotCore.generateResponse(input)
-      case _ => ChatbotCore.generateResponse(input)
+    val cleaned = InputParser.cleanInput(input)
+
+    cleaned match {
+      case x if PatternUtils.isGreeting(x)       => greetUser()
+      case x if PatternUtils.isQuizRequest(x)    => QuizEngine.startQuiz("scala")
+      case x if PatternUtils.isAnalyticsRequest(x) =>
+        val log = AnalyticsUtils.getInteractionLog()
+        AnalyticsEngine.analyzeInteractions(log) + "\n" + AnalyticsEngine.analyzeQuizPerformance(log)
+      case "set dark mode"                       =>
+        Preferences.storeUserPreferences("dark mode")
+        "Got it! Preference saved: dark mode"
+      case "my preference" =>
+        Preferences.getUserPreferences().getOrElse("No preference set.")
+      case _ =>
+        s"I'm not sure how to help with that. Try asking for a quiz or analytics!"
     }
   }
 }
