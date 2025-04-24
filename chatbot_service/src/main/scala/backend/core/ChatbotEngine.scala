@@ -2,6 +2,7 @@ package backend.core
 import backend.utils.AnalyticsUtils
 import backend.utils.InputParser
 import backend.utils.PatternUtils
+import backend.utils.QuizUtils
 // import backend.utils.{InputParser, PatternUtils, QuizUtils, AnalyticsUtils, Preferences}
 object ChatbotEngine {
   def greetUser(): String = "Welcome, User! How can I help you today?"
