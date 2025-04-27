@@ -12,11 +12,12 @@ import schema.{initialize_schema}
 import utils.config
 
 import org.http4s.server.middleware._
+import org.http4s.server.middleware.Throttle
+import scala.concurrent.duration.DurationInt
 
 object server extends IOApp:
 
   private val corsPolicy = CORS.policy.withAllowOriginAll
-
 
   //simple HTTP service/app
   private val httpApp = Router(
@@ -33,17 +34,23 @@ object server extends IOApp:
         Ok("pong from gateway to gateway")
       }  ).orNotFound
 
-  private val httpWithCors = corsPolicy(httpApp)
+  private val finalHttpApp = Throttle.httpApp[IO](
+    amount = 10,
+    per = 1.seconds
+  )(corsPolicy(httpApp))
 
   // server run func
   def run(args: List[String]): IO[ExitCode] =
     val service_port = config.SERVICE_PORT
+    
     initialize_schema() *>
+    finalHttpApp.flatMap{app =>
     EmberServerBuilder
       .default[IO]
       .withHost(ipv4"0.0.0.0")
       .withPort(service_port)
-      .withHttpApp(httpWithCors)
+      .withHttpApp(app)
       .build
       .use(_ => IO.never)
       .as(ExitCode.Success)
+    }
