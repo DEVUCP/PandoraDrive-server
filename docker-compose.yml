@@ -2,7 +2,7 @@ services:
   gateway:
     build:
       context: ./api_gateway_service
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     environment:
       - GATEWAY_PORT
       - TEMPLATE_PORT
@@ -15,7 +15,7 @@ services:
   metadata_service:
     build:
       context: ./metadata_service
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     environment:
       - GATEWAY_PORT
       - TEMPLATE_PORT
@@ -28,7 +28,7 @@ services:
   chatbot_service:
     build:
       context: ./chatbot_service
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     environment:
       - GATEWAY_PORT
       - TEMPLATE_PORT
@@ -41,7 +41,7 @@ services:
   template:
     build:
       context: ./template_service
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     environment:
       - GATEWAY_PORT
       - TEMPLATE_PORT
@@ -51,7 +51,7 @@ services:
   file_service:
     build:
       context: ./file_service
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     environment:
       - GATEWAY_PORT
       - TEMPLATE_PORT
