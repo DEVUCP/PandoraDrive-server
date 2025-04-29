@@ -122,8 +122,8 @@ jobs:
         working-directory: ./file_service
         run: sbt test
 
-  metadata_service_test:
-    name: Metadata Service
+  analytics_service_test:
+    name: Analytics Service
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -155,8 +155,8 @@ jobs:
             ~/.ivy2/cache
             ~/.coursier
             target
-          key: ${{ runner.os }}-metadata-service-${{ hashFiles('metadata_service/build.sbt') }}
+          key: ${{ runner.os }}-analytics-service-${{ hashFiles('analytics_service/build.sbt') }}
           
       - name: Run tests
-        working-directory: ./metadata_service
+        working-directory: ./analytics_service
         run: sbt test

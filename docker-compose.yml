@@ -6,24 +6,24 @@ services:
     environment:
       - GATEWAY_PORT
       - TEMPLATE_PORT
-      - METADATA_SERVICE_PORT
+      - ANALYTICS_SERVICE_PORT
       - CHATBOT_SERVICE_PORT
       - FILE_SERVICE_PORT
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
 
-  metadata_service:
+  analytics_service:
     build:
-      context: ./metadata_service
+      context: ./analytics_service
       dockerfile: dockerfile
     environment:
       - GATEWAY_PORT
       - TEMPLATE_PORT
-      - METADATA_SERVICE_PORT
+      - ANALYTICS_SERVICE_PORT
       - CHATBOT_SERVICE_PORT
       - FILE_SERVICE_PORT
     ports:
-      - "${METADATA_SERVICE_PORT}:${METADATA_SERVICE_PORT}"
+      - "${ANALYTICS_SERVICE_PORT}:${ANALYTICS_SERVICE_PORT}"
 
   chatbot_service:
     build:
@@ -32,7 +32,7 @@ services:
     environment:
       - GATEWAY_PORT
       - TEMPLATE_PORT
-      - METADATA_SERVICE_PORT
+      - ANALYTICS_SERVICE_PORT
       - CHATBOT_SERVICE_PORT
       - FILE_SERVICE_PORT
     ports:
@@ -55,7 +55,7 @@ services:
     environment:
       - GATEWAY_PORT
       - TEMPLATE_PORT
-      - METADATA_SERVICE_PORT
+      - ANALYTICS_SERVICE_PORT
       - CHATBOT_SERVICE_PORT
       - FILE_SERVICE_PORT
       - DB_URL=jdbc:sqlite:db.db
