@@ -22,10 +22,9 @@ object server extends IOApp:
         Ok(s"Hello, $name!")
       case GET -> Root / "hello" =>
         Ok("Hello, World!")
-      case GET -> Root / "ping" =>
-        Ok("pong")
-    }
-  ).orNotFound
+      case GET -> Root / "ping" ~ json =>
+        Ok("pong from gateway to gateway")
+      }  ).orNotFound
 
 
   var port = sys.env.get("GATEWAY_PORT") match {
