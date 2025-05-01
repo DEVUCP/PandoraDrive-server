@@ -23,15 +23,20 @@ object server extends IOApp:
 
   private val router = Router(
     "/folder" -> folder_routes,
-    "/file" -> file_routes
+    "/file" -> file_routes,
+    "/ping" -> HttpRoutes.of[IO] { case GET -> Root => Ok("""{ "pong" : "from file_service" }""") }
   ).orNotFound
+  var port = sys.env.get("FILE_SERVICE_PORT") match {
+    case Some(port) => Port.fromString(port).getOrElse(port"55555")
+    case None => port"55555"
+  }
 
   def run(args: List[String]): IO[ExitCode] =
     initialize_schemas() *>
       EmberServerBuilder
         .default[IO]
         .withHost(ipv4"0.0.0.0")
-        .withPort(port"55551")
+        .withPort(port)
         .withHttpApp(router)
         .build
         .use(_ => IO.never)
