@@ -11,7 +11,8 @@ import doobie.implicits._
 import schema.{FileMetadata, FolderMetadata}
 import db.transactor
 import dto.{FileCreationBody, validate_file_creation_body}
-import types.FileId
+import types.{FileId, FolderId}
+
 def get_file_metadata_by_file_id(
     id: Int
 ): IO[Either[String, FileMetadata]] =
@@ -89,3 +90,14 @@ def file_complete_status(file_id: FileId): IO[Unit] = {
   * idx_files_folder ON files(folder_id); CREATE INDEX idx_files_status ON
   * files(upload_status);
   */
+
+def get_files_by_folder_id(folder_id: FolderId): IO[List[FileId]] =
+  sql"""select file_id from file_metadata where folder_id = $folder_id"""
+    .query[FileId]
+    .to[List]
+    .transact(transactor)
+    .attempt
+    .map {
+      case Right(lst) => lst
+      case Left(lst)  => Nil
+    }
