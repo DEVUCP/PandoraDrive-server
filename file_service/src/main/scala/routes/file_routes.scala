@@ -25,10 +25,17 @@ import dto.FileCreationBody
 import dto.{UploadBody, ChunkMetadataMultipartUpload}
 import services.chunk_service
 import dto.FileCompletionBody
+import model.get_files_by_folder_id
 
 val file_routes = HttpRoutes
   .of[IO] {
-    case GET -> Root :? IdQueryParamMatcher(id) =>
+    case GET -> Root :? FolderIdDecoderParamMatcher(id) =>
+      for {
+        list <- get_files_by_folder_id(id)
+        resp <- Ok(list.asJson)
+      } yield resp
+
+    case GET -> Root :? FileIdQueryParamMatcher(id) =>
       get_file_metadata_by_file_id(id).flatMap {
         case Right(file) =>
           Ok(file.asJson)

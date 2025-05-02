@@ -22,7 +22,7 @@ import types.ErrorResponse
 import org.http4s.server.Router
 
 val folder_routes = HttpRoutes.of[IO] {
-  case req @ GET -> Root :? IdQueryParamMatcher(id) =>
+  case req @ GET -> Root :? FileIdQueryParamMatcher(id) =>
     get_folder_metadata_by_folder_id(id).flatMap {
       case Right(folder) =>
         Ok(folder.asJson)

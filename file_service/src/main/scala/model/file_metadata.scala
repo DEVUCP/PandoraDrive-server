@@ -14,7 +14,7 @@ import dto.{FileCreationBody, validate_file_creation_body}
 import types.{FileId, FolderId}
 
 def get_file_metadata_by_file_id(
-    id: Int
+    id: FileId
 ): IO[Either[String, FileMetadata]] =
   sql"""
       select file_id, folder_id, file_name, size_bytes, mime_type, owner_id, status, uploaded_at, created_at, modified_at
