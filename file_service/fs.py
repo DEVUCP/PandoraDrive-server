@@ -36,6 +36,11 @@ def rm(cmd: str):
     # TODO: Continue this
 
 
+def restart():
+    global cwd_valid
+    cwd_valid = False
+
+
 if __name__ == "__main__":
     running = True
     while running:
@@ -45,6 +50,8 @@ if __name__ == "__main__":
             running = False
         elif cmd == "ls":
             ls()
+        elif cmd == "restart":
+            restart()
         elif cmd.startswith("rm"):
             rm(cmd)
         else:
