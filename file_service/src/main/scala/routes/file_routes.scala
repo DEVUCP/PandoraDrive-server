@@ -20,7 +20,12 @@ import org.http4s.server.Router
 import schema.initialize_schemas
 import model.get_folder_metadata_by_folder_id
 import types.{ErrorResponse, FileUploadMetadataInserted}
-import model.{get_file_metadata_by_file_id, create_file_metadata}
+import model.{
+  get_file_metadata_by_file_id,
+  create_file_metadata,
+  update_file_metadata,
+  get_file_id_by_file_name_and_folder
+}
 import dto.FileCreationBody
 import dto.{UploadBody, ChunkMetadataMultipartUpload}
 import services.chunk_service
@@ -48,25 +53,44 @@ val file_routes = HttpRoutes
               BadRequest(ErrorResponse(other).asJson)
           }
       }
+
     case req @ POST -> Root / "upload" / "init" =>
       req.as[FileCreationBody].attempt.flatMap {
         case Left(error) =>
           BadRequest(ErrorResponse(s"Invalid body: ${error.getMessage}").asJson)
 
         case Right(body) =>
-          create_file_metadata(body).flatMap {
-            case Left(err) =>
-              BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
+          get_file_id_by_file_name_and_folder(body.file_name, body.folder_id)
+            .flatMap {
+              case Some(id) =>
+                update_file_metadata(body, id).flatMap {
+                  case Left(err) =>
+                    BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
+                  case Right(file_id) =>
+                    Ok(
+                      FileUploadMetadataInserted(
+                        "File Metadata Inserted",
+                        file_id
+                      ).asJson
+                    )
+                }
 
-            case Right(file_id) =>
-              Ok(
-                FileUploadMetadataInserted(
-                  "File Metadata Inserted",
-                  file_id
-                ).asJson
-              )
-          }
+              case None =>
+                create_file_metadata(body).flatMap {
+                  case Left(err) =>
+                    BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
+
+                  case Right(file_id) =>
+                    Ok(
+                      FileUploadMetadataInserted(
+                        "File Metadata Inserted",
+                        file_id
+                      ).asJson
+                    )
+                }
+            }
       }
+
     case req @ POST -> Root / "upload" / "chunk" =>
       EntityDecoder
         .mixedMultipartResource[IO]()

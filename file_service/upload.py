@@ -88,9 +88,9 @@ def gather_stat(file_path: str):
 def init_upload(body: dict) -> Tuple[int, int]:
     """Initialize file upload and return token"""
     req = requests.post(f"{URL}/file/upload/init", json=body)
-    assert req.status_code == 200, "The initialization failed"
     json_response = req.json()
     print(json_response)
+    assert req.status_code == 200, "The initialization failed"
     return (
         json_response["file_id"],
         1024 * 1024,

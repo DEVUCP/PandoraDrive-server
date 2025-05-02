@@ -31,7 +31,7 @@ import utils.files
 import utils.hash_chunk
 import model.{
   create_file_chunk_link,
-  is_file_chunks_uploaded,
+  are_file_chunks_uploaded,
   file_complete_status
 }
 import dto.FileCompletionBody
@@ -114,7 +114,7 @@ object chunk_service {
 
   def upload_complete(body: FileCompletionBody) =
     upload_complete_curried(
-      is_file_chunks_uploaded,
+      are_file_chunks_uploaded,
       file_complete_status
     )(body.file_id)
 }

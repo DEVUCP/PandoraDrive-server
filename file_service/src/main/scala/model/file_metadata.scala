@@ -32,6 +32,51 @@ def get_file_metadata_by_file_id(
       case Left(e)         => Left(s"Database error: ${e.getMessage}")
     }
 
+def get_file_id_by_file_name_and_folder(
+    file_name: String,
+    folder_id: FolderId
+): IO[Option[FileId]] =
+  sql"""
+    SELECT file_id FROM file_metadata WHERE file_name=$file_name and folder_id=$folder_id
+  """
+    .query[FileId]
+    .option
+    .transact(transactor)
+
+def update_file_metadata(
+    body: FileCreationBody,
+    file_id: FileId
+): IO[Either[String, Long]] = {
+  implicit val bigIntPut: Put[BigInt] =
+    Put[BigDecimal].contramap(BigDecimal(_))
+
+  for {
+    validation <- validate_file_creation_body(body)
+    resp <- {
+      val (valid, err) = validation
+      if (!valid) IO.pure(Left(err))
+      else {
+        val modified_at = java.time.Instant.now().toString
+        val updateQuery =
+          sql"""update file_metadata set status='Uploading', modified_at=${modified_at} where file_id=$file_id"""
+        updateQuery.update
+          .withGeneratedKeys[FileId]("id")
+          .compile
+          .last
+          .transact(transactor)
+          .attempt
+          .map {
+            case Right(Some(id)) => Right(id)
+            case Right(None)     => Left("Update failed: no ID returned")
+            case Left(e) =>
+              Left(
+                s"Database error: ${e.getMessage}"
+              )
+          }
+      }
+    }
+  } yield resp
+}
 def create_file_metadata(body: FileCreationBody): IO[Either[String, Long]] = {
   implicit val bigIntPut: Put[BigInt] =
     Put[BigDecimal].contramap(BigDecimal(_))
@@ -52,7 +97,7 @@ def create_file_metadata(body: FileCreationBody): IO[Either[String, Long]] = {
             )
             values (
               ${body.file_name}, ${body.folder_id}, ${body.size_bytes},
-              ${body.mime_type}, ${body.owner_id}, 'UploadStart',
+              ${body.mime_type}, ${body.owner_id}, 'Uploading',
               ${body.created_at}, $uploaded_at, ${body.modified_at}
             )
           """

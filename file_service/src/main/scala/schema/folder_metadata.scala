@@ -32,6 +32,6 @@ def create_folder_metadata_table(): IO[Unit] =
       modified_at TEXT NOT NULL,
       uploaded_at TEXT NOT NULL,
       owner_id int NOT NULL,
-      status TEXT NOT NULL CHECK (status in ('UploadStart', 'Uploaded', 'Flawed')),
+      status TEXT NOT NULL CHECK (status in ('Uploading', 'Uploaded', 'Flawed')),
       FOREIGN KEY(parent_folder_id) REFERENCES folder_metadata(folder_id)
      );""".update.run.void.transact(transactor)

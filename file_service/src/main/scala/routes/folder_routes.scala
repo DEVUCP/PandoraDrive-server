@@ -28,7 +28,6 @@ val folder_routes = HttpRoutes.of[IO] {
         Ok(folder.asJson)
 
       case Left(errMsg) =>
-        // Optional: differentiate error types for appropriate HTTP status codes
         errMsg match {
           case msg if msg.startsWith("No folder exists") =>
             NotFound(ErrorResponse(msg).asJson)
