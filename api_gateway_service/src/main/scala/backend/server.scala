@@ -8,6 +8,8 @@ import org.http4s.implicits._
 import org.http4s.server.Router
 import com.comcast.ip4s.*
 import backend.routes.{AdminRoutes, FileRoutes, ChatbotRoutes}
+import schema.{initialize_schema}
+import utils.config
 
 object server extends IOApp:
 
@@ -27,16 +29,14 @@ object server extends IOApp:
       }  ).orNotFound
 
 
-  var port = sys.env.get("GATEWAY_PORT") match {
-    case Some(port) => Port.fromString(port).getOrElse(port"55551")
-    case None => port"55551"
-  }
   // server run func
   def run(args: List[String]): IO[ExitCode] =
+    val service_port = config.SERVICE_PORT
+    initialize_schema() *>
     EmberServerBuilder
       .default[IO]
       .withHost(ipv4"0.0.0.0")
-      .withPort(port)
+      .withPort(service_port)
       .withHttpApp(httpApp)
       .build
       .use(_ => IO.never)
