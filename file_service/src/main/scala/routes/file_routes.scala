@@ -30,11 +30,11 @@ import dto.FileCreationBody
 import dto.{UploadBody, ChunkMetadataMultipartUpload}
 import services.chunk_service
 import dto.FileCompletionBody
-import model.get_files_by_folder_id
+import model.{get_files_by_folder_id, delete_file}
 
 val file_routes = HttpRoutes
   .of[IO] {
-    case GET -> Root :? FolderIdDecoderParamMatcher(id) =>
+    case GET -> Root :? FolderIdQueryParamMatcher(id) =>
       for {
         list <- get_files_by_folder_id(id)
         resp <- Ok(list.asJson)
@@ -119,4 +119,9 @@ val file_routes = HttpRoutes
         case Left(_)     => BadRequest(ErrorResponse("Invalid Body").asJson)
         case Right(body) => chunk_service.upload_complete(body)
       }
+
+    case DELETE -> Root / "delete" :? FileIdQueryParamMatcher(id) => {
+      delete_file(id) *>
+        Ok()
+    }
   }

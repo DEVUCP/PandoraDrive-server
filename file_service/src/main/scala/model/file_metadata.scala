@@ -130,12 +130,6 @@ def file_complete_status(file_id: FileId): IO[Unit] = {
   """.update.run.void.transact(transactor)
 }
 
-// TODO:  Create indices
-/** CREATE INDEX idx_folders_parent ON folders(parent_folder_id); CREATE INDEX
-  * idx_files_folder ON files(folder_id); CREATE INDEX idx_files_status ON
-  * files(upload_status);
-  */
-
 def get_files_by_folder_id(folder_id: FolderId): IO[List[FileId]] =
   sql"""select file_id from file_metadata where folder_id = $folder_id"""
     .query[FileId]
@@ -146,3 +140,8 @@ def get_files_by_folder_id(folder_id: FolderId): IO[List[FileId]] =
       case Right(lst) => lst
       case Left(lst)  => Nil
     }
+
+def delete_file(file_id: FileId): IO[Unit] =
+  remove_file_chunks(file_id)
+  sql"""delete from file_metadata where file_id = $file_id""".update.run.void
+    .transact(transactor)

@@ -33,7 +33,19 @@ def rm(cmd: str):
     if len(parts) != 2:
         print("Valid format is rm <file_name>")
         return
-    # TODO: Continue this
+    name = parts[1]
+    validate_cwd()
+    print(cwd_files)
+    file_id = next(
+        (file["file_id"] for file in cwd_files if file["file_name"] == name), None
+    )
+    if not file_id:
+        print(f"File name {name} doesn't exist in CWD")
+        return
+
+    req = requests.delete(f"{URL}/file/delete?file_id={file_id}")
+    print(f"File Deletion Request Status Code: {req.status_code}")
+    restart()
 
 
 def restart():
@@ -46,13 +58,16 @@ if __name__ == "__main__":
     while running:
         cmd = input("> ").strip().lower()
 
-        if cmd == "quit" or cmd == "exit":
-            running = False
-        elif cmd == "ls":
-            ls()
-        elif cmd == "restart":
-            restart()
-        elif cmd.startswith("rm"):
-            rm(cmd)
-        else:
-            print(f"Invaild cmd: {cmd}")
+        try:
+            if cmd in ["quit", "exit", "q"]:
+                running = False
+            elif cmd == "ls":
+                ls()
+            elif cmd == "restart":
+                restart()
+            elif cmd.startswith("rm"):
+                rm(cmd)
+            else:
+                print(f"Invaild cmd: {cmd}")
+        except Exception:
+            print("Something wrong happened")

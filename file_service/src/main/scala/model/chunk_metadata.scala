@@ -8,7 +8,7 @@ import cats.effect.IO
 import cats.implicits._
 import cats.effect.unsafe.implicits.global
 import io.circe.Encoder
-import types.ChunkId
+import types.{ChunkId, FileId}
 
 import dto.ChunkMetadataMultipartUpload
 import types.ChunkId
@@ -35,3 +35,8 @@ def create_chunk_metadata(chunkId: ChunkId, chunkSize: Int): IO[Unit] =
   sql"""
   insert into chunk_metadata(chunk_id, byte_size) values($chunkId, $chunkSize)
   """.update.run.void.transact(transactor)
+
+def remove_file_chunks(file_id: FileId): IO[Unit] =
+  sql"""update chunk_metadata set ref_count = ref_count - 1 where chunk_id in (select chunk_id from file_chunk where file_id=$file_id)""".update.run.void
+    .transact(transactor)
+// TODO: Create a background job in scala to remove unused chunks
