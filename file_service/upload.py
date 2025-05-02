@@ -1,6 +1,5 @@
 import argparse
 import datetime
-import hashlib
 import json
 import mimetypes
 import os
@@ -9,7 +8,7 @@ from typing import Tuple
 
 import requests
 
-URL = "http://localhost:55551"
+URL = "http://localhost:55555"
 
 
 def upload_file(file_path: str):
@@ -25,8 +24,8 @@ def upload_file(file_path: str):
     stat["owner_id"] = 1
 
     try:
-        token, chunk_size = init_upload(stat)
-        print("Token: ", token)
+        file_id, chunk_size = init_upload(stat)
+        print("FileId: ", file_id)
         print("Chunk Size: ", chunk_size)
     except requests.exceptions.RequestException as e:
         print(f"Error: Failed to initialize upload - {str(e)}", file=sys.stderr)
@@ -49,20 +48,22 @@ def upload_file(file_path: str):
                 upload_chunk(
                     chunk=chunk,
                     chunk_sequence=chunk_index,
-                    token=token,
+                    file_id=file_id,
                     chunk_size=current_chunk_size,  # Send actual chunk size
                 )
     except:
         sys.exit(1)
 
-    complete_request(token)
+    complete_request(file_id)
 
 
-def complete_request(token: str):
-    body = {"token": token}
+def complete_request(file_id: int):
+    body = {"file_id": file_id}
+    print(body)
     req = requests.post(URL + "/file/upload/complete", json=body)
     print(f"Complete Response Done. Status: {req.status_code}")
-    print(req.content)
+    if req.content:
+        print(req.content)
 
 
 def gather_stat(file_path: str):
@@ -84,27 +85,27 @@ def gather_stat(file_path: str):
     }
 
 
-def init_upload(body: dict) -> Tuple[str, int]:
+def init_upload(body: dict) -> Tuple[int, int]:
     """Initialize file upload and return token"""
     req = requests.post(f"{URL}/file/upload/init", json=body)
     assert req.status_code == 200, "The initialization failed"
     json_response = req.json()
+    print(json_response)
     return (
-        json_response["token"],
+        json_response["file_id"],
         1024 * 1024,
     )  # TODO: Adjust accordingly to make the init calculate the regular chunk size used by the server
 
 
-def upload_chunk(chunk: bytes, chunk_sequence: int, chunk_size: int, token: str):
+def upload_chunk(chunk: bytes, chunk_sequence: int, chunk_size: int, file_id: int):
     """Upload one Chunk with the specific sequence, chunk_size"""
     metadata = {
         "chunk_sequence": chunk_sequence,
         "chunk_size": chunk_size,
-        "token": token,
+        "file_id": file_id,
     }
 
     print(json.dumps(metadata))
-    print("Chunk SHA256:", hashlib.sha256(chunk).hexdigest())
     requests.post(
         f"{URL}/file/upload/chunk",
         files={

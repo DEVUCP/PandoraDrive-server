@@ -29,6 +29,7 @@ lazy val root = (project in file("."))
       "org.xerial" % "sqlite-jdbc" % "3.23.1",
       "org.tpolecat" %% "doobie-core" % "1.0.0-RC8",
       "com.github.jwt-scala" %% "jwt-circe" % "10.0.4",
+
       // And add any of these as needed
       "org.tpolecat" %% "doobie-h2" % "1.0.0-RC8", // H2 driver 1.4.200 + type mappings.
       "org.tpolecat" %% "doobie-postgres" % "1.0.0-RC8",

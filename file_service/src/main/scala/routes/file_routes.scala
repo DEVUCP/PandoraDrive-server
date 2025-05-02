@@ -22,8 +22,7 @@ import model.get_folder_metadata_by_folder_id
 import types.{ErrorResponse, FileUploadMetadataInserted}
 import model.{get_file_metadata_by_file_id, create_file_metadata}
 import dto.FileCreationBody
-import utils.jwt.create_token
-import dto.{UploadToken, ChunkMetadataMultipartUpload}
+import dto.{UploadBody, ChunkMetadataMultipartUpload}
 import services.chunk_service
 import dto.FileCompletionBody
 
@@ -53,22 +52,12 @@ val file_routes = HttpRoutes
               BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
 
             case Right(file_id) =>
-              create_token(UploadToken(file_id)) match {
-                case None =>
-                  BadRequest(
-                    ErrorResponse(
-                      "Failed to create token. If you are a developer, check console output"
-                    ).asJson
-                  )
-
-                case Some(valid_token) =>
-                  Ok(
-                    FileUploadMetadataInserted(
-                      "File Metadata Inserted",
-                      valid_token
-                    ).asJson
-                  )
-              }
+              Ok(
+                FileUploadMetadataInserted(
+                  "File Metadata Inserted",
+                  file_id
+                ).asJson
+              )
           }
       }
     case req @ POST -> Root / "upload" / "chunk" =>

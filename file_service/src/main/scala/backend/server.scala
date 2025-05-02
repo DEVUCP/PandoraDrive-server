@@ -24,12 +24,14 @@ object server extends IOApp:
   private val router = Router(
     "/folder" -> folder_routes,
     "/file" -> file_routes,
-    "/ping" -> HttpRoutes.of[IO] { case GET -> Root => Ok("""{ "pong" : "from file_service" }""") }
+    "/ping" -> HttpRoutes.of[IO] { case GET -> Root =>
+      Ok("""{ "pong" : "from file_service" }""")
+    }
   ).orNotFound
 
-
   def run(args: List[String]): IO[ExitCode] =
-    val servicePort = Port.fromString(config.SERVICE_PORT).getOrElse(port"55555")
+    val servicePort =
+      Port.fromString(config.SERVICE_PORT).getOrElse(port"55555")
     initialize_schemas() *>
       EmberServerBuilder
         .default[IO]
