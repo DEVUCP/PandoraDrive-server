@@ -22,17 +22,21 @@ object server extends IOApp:
         Ok(s"Hello, $name!")
       case GET -> Root / "hello" =>
         Ok("Hello, World!")
-      case GET -> Root / "ping" =>
-        Ok("pong")
-    }
-  ).orNotFound
+      case GET -> Root / "ping" ~ json =>
+        Ok("pong from gateway to gateway")
+      }  ).orNotFound
 
+
+  var port = sys.env.get("GATEWAY_PORT") match {
+    case Some(port) => Port.fromString(port).getOrElse(port"55551")
+    case None => port"55551"
+  }
   // server run func
   def run(args: List[String]): IO[ExitCode] =
     EmberServerBuilder
       .default[IO]
       .withHost(ipv4"0.0.0.0")
-      .withPort(port"55551")
+      .withPort(port)
       .withHttpApp(httpApp)
       .build
       .use(_ => IO.never)
