@@ -10,16 +10,14 @@ URL = "http://localhost:55555"
 
 
 def validate_cwd():
+    global cwd_valid
     if cwd_valid:
         return
     cwd_files.clear()
     req = requests.get(f"{URL}/file?folder_id={cur_folder_id}")
-    body: List[int] = req.json()
-
-    for file_id in body:
-        req = requests.get(f"{URL}/file?file_id={file_id}")
-        if req.status_code == 200:
-            cwd_files.append(req.json())
+    for file in req.json():
+        cwd_files.append(file)
+    cwd_valid = True
 
 
 def ls():

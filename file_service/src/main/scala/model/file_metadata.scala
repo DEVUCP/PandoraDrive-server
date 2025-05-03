@@ -130,18 +130,23 @@ def file_complete_status(file_id: FileId): IO[Unit] = {
   """.update.run.void.transact(transactor)
 }
 
-def get_files_by_folder_id(folder_id: FolderId): IO[List[FileId]] =
-  sql"""select file_id from file_metadata where folder_id = $folder_id"""
-    .query[FileId]
+def get_files_by_folder_id(folder_id: FolderId): IO[
+  List[FileMetadata]
+] =
+  implicit val bigIntMeta: Meta[BigInt] = Meta[Long].timap(BigInt(_))(_.toLong)
+
+  sql"""select file_id, folder_id, file_name, created_at, modified_at, uploaded_at, size_bytes, mime_type, owner_id, status from file_metadata where folder_id = $folder_id"""
+    .query[FileMetadata]
     .to[List]
     .transact(transactor)
-    .attempt
-    .map {
-      case Right(lst) => lst
-      case Left(lst)  => Nil
+    .handleErrorWith { e =>
+      IO.println(
+        s"Error fetching files for folder $folder_id: ${e.getMessage}"
+      ) >>
+        IO.pure(Nil)
     }
 
 def delete_file(file_id: FileId): IO[Unit] =
-  remove_file_chunks(file_id)
-  sql"""delete from file_metadata where file_id = $file_id""".update.run.void
-    .transact(transactor)
+  remove_file_chunks(file_id) *>
+    sql"""delete from file_metadata where file_id = $file_id""".update.run.void
+      .transact(transactor)
