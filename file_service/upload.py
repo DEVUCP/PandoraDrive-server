@@ -107,7 +107,7 @@ def upload_chunk(chunk: bytes, chunk_sequence: int, chunk_size: int, file_id: in
 
     print(json.dumps(metadata))
     requests.post(
-        f"{URL}/file/upload/chunk",
+        f"{URL}/chunk/upload",
         files={
             "metadata": (None, json.dumps(metadata), "application/json"),
             "chunk": (f"chunk_{chunk_sequence}.bin", chunk, "application/octet-stream"),

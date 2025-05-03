@@ -15,7 +15,7 @@ import types.{ChunkId, FileId}
 case class FileChunkRelation(
     chunk_id: ChunkId,
     file_id: FileId,
-    sequence: Int
+    chunk_seq: Int
 )
 
 def create_file_chunk_relationship_table(): IO[Unit] =

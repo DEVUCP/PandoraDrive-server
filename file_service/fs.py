@@ -1,4 +1,4 @@
-from typing import List
+import os
 
 import requests
 
@@ -51,6 +51,49 @@ def restart():
     cwd_valid = False
 
 
+def download(cmd: str):
+    parts = cmd.split(" ")
+    if len(parts) != 3:
+        print("Invalid Format: download <file_name_in_current_folder> destination")
+        return
+
+    file_name = parts[1]
+    dest = parts[2]
+    if not os.path.isdir(dest):
+        print("Invalid destination folder")
+        return
+
+    validate_cwd()
+    file_id = next(
+        (file["file_id"] for file in cwd_files if file["file_name"] == file_name), None
+    )
+
+    if not file_id:
+        print(f"File {file_name} not found in cwd")
+        return
+
+    # Get File Data
+    req = requests.get(f"{URL}/file/download?file_id={file_id}")
+    if not req.status_code == 200:
+        print(f"Something is wrong: Status Code= {req.status_code}")
+        print(req.json())
+        return
+    data = req.json()
+    print(data)
+
+    print(f"Reconstructing the file {file_name}...")
+    with open(file_name, "wb") as f:
+        for chunk in data:
+            chunk_id, chunk_sequence, byte_size = chunk.values()
+            print(chunk_id)
+            response = requests.get(f"{URL}/chunk/download?chunk_id={chunk_id}")
+            if response.status_code == 200:
+                f.write(response.content)
+                print(f"Chunk #{chunk_sequence} downloaded successfully")
+            else:
+                print(f"Chunk #{chunk_sequence} didn't download: {response.text}")
+
+
 if __name__ == "__main__":
     running = True
     while running:
@@ -65,7 +108,9 @@ if __name__ == "__main__":
                 restart()
             elif cmd.startswith("rm"):
                 rm(cmd)
+            elif cmd.startswith("dl"):
+                download(cmd)
             else:
                 print(f"Invaild cmd: {cmd}")
-        except Exception:
+        except:
             print("Something wrong happened")

@@ -10,6 +10,7 @@ import doobie.implicits._
 import types.{FileId, ChunkId}
 import db.transactor
 import utils.config
+import schema.FileChunkRelation
 
 def create_file_chunk_link(
     file_id: FileId,
@@ -18,6 +19,7 @@ def create_file_chunk_link(
 ): IO[Unit] =
   sql"""
   insert into file_chunk(file_id, chunk_id, chunk_seq) values($file_id, $chunk_id, $chunk_seq)
+  on conflict (file_id, chunk_id) do nothing
   """.update.run.void.transact(transactor)
 
 def are_file_chunks_uploaded(file_id: FileId): IO[Boolean] =

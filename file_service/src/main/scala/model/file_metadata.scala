@@ -66,8 +66,7 @@ def update_file_metadata(
           .transact(transactor)
           .attempt
           .map {
-            case Right(Some(id)) => Right(id)
-            case Right(None)     => Left("Update failed: no ID returned")
+            case Right(_) => Right(file_id)
             case Left(e) =>
               Left(
                 s"Database error: ${e.getMessage}"

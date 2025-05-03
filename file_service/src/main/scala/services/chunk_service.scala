@@ -9,6 +9,8 @@ import org.http4s.ember.server.*
 import org.http4s.multipart.*
 import com.comcast.ip4s.*
 
+import org.http4s.headers.`Content-Type`
+import org.http4s.MediaType
 import cats.effect.{IO, IOApp, ExitCode}
 import io.circe.syntax._
 import io.circe.generic.auto._
@@ -32,12 +34,16 @@ import utils.hash_chunk
 import model.{
   create_file_chunk_link,
   are_file_chunks_uploaded,
-  file_complete_status
+  file_complete_status,
+  get_chunk_metadata
 }
 import dto.FileCompletionBody
+import utils.files.read_file
 
 object chunk_service {
   class InvalidMetadata extends Throwable
+  def construct_file_name(chunk_id: ChunkId): String =
+    s"${chunk_id.slice(0, 2)}/${chunk_id.slice(2, 4)}/${chunk_id.slice(4, chunk_id.length)}"
 
   def process_upload_curried(
       chunk_exists: ChunkId => IO[Boolean],
@@ -95,7 +101,7 @@ object chunk_service {
     (chunk_id, bytes) => {
       files.store_file(
         bytes,
-        s"${chunk_id.slice(0, 2)}/${chunk_id.slice(2, 4)}/${chunk_id.slice(4, chunk_id.length)}"
+        construct_file_name(chunk_id)
       )
     },
     create_file_chunk_link
@@ -117,4 +123,20 @@ object chunk_service {
       are_file_chunks_uploaded,
       file_complete_status
     )(body.file_id)
+
+  def download_chunk(chunk_id: ChunkId): IO[Response[IO]] =
+    get_chunk_metadata(chunk_id).flatMap {
+      case Some(data) =>
+        read_file(construct_file_name(chunk_id)).flatMap {
+          case Right(stream) =>
+            Ok(stream)
+              .map(
+                _.withContentType(
+                  `Content-Type`(MediaType.application.`octet-stream`)
+                )
+              )
+          case Left(msg) => BadRequest(ErrorResponse(msg))
+        }
+      case None => BadRequest(ErrorResponse("Chunk with this ID doesn't exist"))
+    }
 }

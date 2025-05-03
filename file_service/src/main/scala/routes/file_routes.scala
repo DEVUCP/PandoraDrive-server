@@ -24,7 +24,8 @@ import model.{
   get_file_metadata_by_file_id,
   create_file_metadata,
   update_file_metadata,
-  get_file_id_by_file_name_and_folder
+  get_file_id_by_file_name_and_folder,
+  get_file_chunks_metadata
 }
 import dto.FileCreationBody
 import dto.{UploadBody, ChunkMetadataMultipartUpload}
@@ -52,6 +53,14 @@ val file_routes = HttpRoutes
             case other =>
               BadRequest(ErrorResponse(other).asJson)
           }
+      }
+
+    case GET -> Root / "download" :? FileIdQueryParamMatcher(id) =>
+      get_file_chunks_metadata(id).flatMap {
+        case Right(lst) => Ok(lst)
+        case Left(errorMsg) =>
+          IO.println(errorMsg) *>
+            InternalServerError("Internal Server Error")
       }
 
     case req @ POST -> Root / "upload" / "init" =>
@@ -91,29 +100,6 @@ val file_routes = HttpRoutes
             }
       }
 
-    case req @ POST -> Root / "upload" / "chunk" =>
-      EntityDecoder
-        .mixedMultipartResource[IO]()
-        .use(decoder =>
-          req.decodeWith(decoder, strict = true)(multipart =>
-            val chunk_metadata =
-              multipart.parts.find(_.name.contains("metadata"))
-            val chunk =
-              multipart.parts.find(_.name.contains("chunk"))
-            (chunk_metadata, chunk) match {
-              case (_, None) =>
-                BadRequest(
-                  ErrorResponse("Invalid request: Chunk is not uploaded")
-                )
-              case (None, _) =>
-                BadRequest(
-                  ErrorResponse("Invalid request: No Metadata Received")
-                )
-              case (Some(metadata), Some(chunk)) =>
-                chunk_service.upload_chunk(metadata, chunk)
-            }
-          )
-        )
     case req @ POST -> Root / "upload" / "complete" =>
       req.as[FileCompletionBody].attempt.flatMap {
         case Left(_)     => BadRequest(ErrorResponse("Invalid Body").asJson)

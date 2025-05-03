@@ -15,7 +15,7 @@ import io.circe.generic.auto._
 import org.http4s.circe._
 import org.http4s.server.Router
 
-import routes.{folder_routes, file_routes}
+import routes.{folder_routes, file_routes, chunk_routes}
 import schema.{initialize_schemas}
 import utils.config
 
@@ -23,6 +23,7 @@ object server extends IOApp:
 
   private val router = Router(
     "/folder" -> folder_routes,
+    "/chunk" -> chunk_routes,
     "/file" -> file_routes,
     "/ping" -> HttpRoutes.of[IO] { case GET -> Root =>
       Ok("""{ "pong" : "from file_service" }""")
