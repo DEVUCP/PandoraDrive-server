@@ -18,9 +18,12 @@ def create_file_chunk_link(
     chunk_seq: Int
 ): IO[Unit] =
   sql"""
-  insert into file_chunk(file_id, chunk_id, chunk_seq) values($file_id, $chunk_id, $chunk_seq)
-  on conflict (file_id, chunk_id) do nothing
-  """.update.run.void.transact(transactor)
+  insert or replace into file_chunk(file_id, chunk_id, chunk_seq) values($file_id, $chunk_id, $chunk_seq)
+  """.update.run.void
+    .transact(transactor)
+    .handleErrorWith { e =>
+      IO(println(s"Error inserting file chunk link: $e")).void
+    }
 
 def are_file_chunks_uploaded(file_id: FileId): IO[Boolean] =
   for {

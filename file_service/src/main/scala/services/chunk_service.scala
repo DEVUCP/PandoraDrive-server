@@ -76,11 +76,16 @@ object chunk_service {
                   resp <- Ok()
                 } yield resp
               } else {
-                (for {
+                val result = for {
+                  _ <- store_file(
+                    chunk_id,
+                    chunk_bytes
+                  ) // NOTE: Storing files comes before saving them in the database
                   _ <- create_new_chunk(chunk_id, chunk_size)
-                  _ <- store_file(chunk_id, chunk_bytes)
                   _ <- create_file_chunk_link(file_id, chunk_id, chunk_seq)
-                } yield ()).attempt.flatMap {
+                } yield ()
+
+                result.attempt.flatMap {
                   case Left(_) =>
                     InternalServerError(
                       ErrorResponse("Internal server error")
