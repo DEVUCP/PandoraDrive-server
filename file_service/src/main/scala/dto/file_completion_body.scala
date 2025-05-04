@@ -3,6 +3,6 @@ package dto
 import types.FileId
 
 case class FileCompletionBody(
-    file_id: FileId
+    token: String
 ) // TODO: File completion body complete
 // TODO: Replace file_id with token

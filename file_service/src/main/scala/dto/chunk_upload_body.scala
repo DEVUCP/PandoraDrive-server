@@ -2,7 +2,7 @@ package dto
 
 import types.FileId
 case class ChunkMetadataMultipartUpload(
-    file_id: FileId,
+    token: String,
     chunk_sequence: Int,
     chunk_size: Int
 )

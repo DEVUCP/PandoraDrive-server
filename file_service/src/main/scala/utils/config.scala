@@ -11,4 +11,6 @@ object config {
     sys.env.get("JWT_EXPIRY_IN_SECONDS").flatMap(_.toIntOption).getOrElse(3600)
   val SERVICE_PORT: String =
     sys.env.getOrElse("FILE_SERVICE_PORT", "55555")
+  val FILE_SERVICE_URL: String =
+    sys.env.getOrElse("FILE_SERVICE_URL", "http://localhost")
 }

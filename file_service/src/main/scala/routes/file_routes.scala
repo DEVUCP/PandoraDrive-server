@@ -32,6 +32,8 @@ import dto.{UploadBody, ChunkMetadataMultipartUpload}
 import services.chunk_service
 import dto.FileCompletionBody
 import model.{get_files_by_folder_id, delete_file}
+import utils.jwt
+import utils.config
 
 val file_routes = HttpRoutes
   .of[IO] {
@@ -63,40 +65,39 @@ val file_routes = HttpRoutes
             InternalServerError("Internal Server Error")
       }
 
-    case req @ POST -> Root / "upload" / "init" =>
+    case req @ POST -> Root / "upload" =>
       req.as[FileCreationBody].attempt.flatMap {
         case Left(error) =>
           BadRequest(ErrorResponse(s"Invalid body: ${error.getMessage}").asJson)
 
         case Right(body) =>
           get_file_id_by_file_name_and_folder(body.file_name, body.folder_id)
-            .flatMap {
-              case Some(id) =>
-                update_file_metadata(body, id).flatMap {
-                  case Left(err) =>
-                    BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
-                  case Right(file_id) =>
-                    Ok(
-                      FileUploadMetadataInserted(
-                        "File Metadata Inserted",
-                        file_id
-                      ).asJson
-                    )
-                }
+            .flatMap { data =>
+              val db_request = data match {
+                case Some(id) => update_file_metadata(body, id)
+                case None     => create_file_metadata(body)
+              }
 
-              case None =>
-                create_file_metadata(body).flatMap {
-                  case Left(err) =>
-                    BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
-
-                  case Right(file_id) =>
-                    Ok(
-                      FileUploadMetadataInserted(
-                        "File Metadata Inserted",
-                        file_id
-                      ).asJson
-                    )
-                }
+              db_request.flatMap {
+                case Left(err) =>
+                  BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
+                case Right(file_id) =>
+                  val token =
+                    jwt.encode_token[UploadBody](UploadBody(file_id))
+                  token match {
+                    case None => InternalServerError()
+                    case Some(token_data) =>
+                      Ok(
+                        FileUploadMetadataInserted(
+                          "File Metadata Inserted",
+                          token_data,
+                          "http://localhost:55555/chunk/upload",
+                          "http://localhost:55555/file/upload/complete",
+                          config.CHUNK_SIZE
+                        ).asJson
+                      )
+                  }
+              }
             }
       }
 

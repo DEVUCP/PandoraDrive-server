@@ -13,7 +13,7 @@ import io.circe.Decoder
 object jwt {
   private val JWT_ALGORITHM = JwtAlgorithm.HS256
 
-  def create_token[A: io.circe.Encoder](payload: A): Option[String] = {
+  def encode_token[A: io.circe.Encoder](payload: A): Option[String] = {
     if (config.JWT_SECRET.isEmpty()) return None
 
     implicit val clock: Clock = Clock.systemUTC()

@@ -28,14 +28,14 @@ import types.FileId
 import dto.UploadBody
 import types.ChunkId
 import model.chunk_exists
-import model.{chunk_reference_add, create_chunk_metadata}
-import utils.files
-import utils.hash_chunk
+import utils.{files, hash_chunk, jwt}
 import model.{
   create_file_chunk_link,
   are_file_chunks_uploaded,
   file_complete_status,
-  get_chunk_metadata
+  get_chunk_metadata,
+  chunk_reference_add,
+  create_chunk_metadata
 }
 import dto.FileCompletionBody
 import utils.files.read_file
@@ -62,38 +62,46 @@ object chunk_service {
           BadRequest(ErrorResponse("Invalid request: Invalid Metadata body"))
 
         case Right(
-              ChunkMetadataMultipartUpload(file_id, chunk_seq, chunk_size)
+              ChunkMetadataMultipartUpload(token, chunk_seq, chunk_size)
             ) =>
-          for {
-            chunk_bytes <- chunk.body.compile.to(Array)
-            chunk_id <- hash_chunk(chunk_bytes)
-            exists <- chunk_exists(chunk_id)
-            response <-
-              if (exists) {
-                for {
-                  _ <- chunk_reference_add(chunk_id)
-                  _ <- create_file_chunk_link(file_id, chunk_id, chunk_seq)
-                  resp <- Ok()
-                } yield resp
-              } else {
-                val result = for {
-                  _ <- store_file(
-                    chunk_id,
-                    chunk_bytes
-                  ) // NOTE: Storing files comes before saving them in the database
-                  _ <- create_new_chunk(chunk_id, chunk_size)
-                  _ <- create_file_chunk_link(file_id, chunk_id, chunk_seq)
-                } yield ()
+          jwt.decode_token[UploadBody](token) match {
+            case Left(err) => BadRequest(ErrorResponse("Invalid Body"))
+            case Right(UploadBody(file_id)) =>
+              for {
+                chunk_bytes <- chunk.body.compile.to(Array)
+                chunk_id <- hash_chunk(chunk_bytes)
+                exists <- chunk_exists(chunk_id)
+                response <-
+                  if (exists) {
+                    for {
+                      _ <- chunk_reference_add(chunk_id)
+                      _ <- create_file_chunk_link(
+                        file_id,
+                        chunk_id,
+                        chunk_seq
+                      )
+                      resp <- Ok()
+                    } yield resp
+                  } else {
+                    val result = for {
+                      _ <- store_file(
+                        chunk_id,
+                        chunk_bytes
+                      ) // NOTE: Storing files comes before saving them in the database
+                      _ <- create_new_chunk(chunk_id, chunk_size)
+                      _ <- create_file_chunk_link(file_id, chunk_id, chunk_seq)
+                    } yield ()
 
-                result.attempt.flatMap {
-                  case Left(_) =>
-                    InternalServerError(
-                      ErrorResponse("Internal server error")
-                    )
-                  case Right(_) => Ok()
-                }
-              }
-          } yield response
+                    result.attempt.flatMap {
+                      case Left(_) =>
+                        InternalServerError(
+                          ErrorResponse("Internal server error")
+                        )
+                      case Right(_) => Ok()
+                    }
+                  }
+              } yield response
+          }
       }
     } yield response
   }
@@ -115,19 +123,23 @@ object chunk_service {
   def upload_complete_curried(
       is_file_chunks_uploaded: FileId => IO[Boolean],
       file_complete_status: FileId => IO[Unit]
-  )(file_id: FileId): IO[Response[IO]] =
-    is_file_chunks_uploaded(file_id).flatMap {
-      case false => NotFound(ErrorResponse("Chunks are not uploaded"))
-      case true =>
-        file_complete_status(file_id) *>
-          Ok()
+  )(token: String): IO[Response[IO]] =
+    jwt.decode_token[UploadBody](token) match {
+      case Left(err) => BadRequest(ErrorResponse("Invalid body"))
+      case Right(UploadBody(file_id)) =>
+        is_file_chunks_uploaded(file_id).flatMap {
+          case false => NotFound(ErrorResponse("Chunks are not uploaded"))
+          case true =>
+            file_complete_status(file_id) *>
+              Ok()
+        }
     }
 
   def upload_complete(body: FileCompletionBody) =
     upload_complete_curried(
       are_file_chunks_uploaded,
       file_complete_status
-    )(body.file_id)
+    )(body.token)
 
   def download_chunk(chunk_id: ChunkId): IO[Response[IO]] =
     get_chunk_metadata(chunk_id).flatMap {
