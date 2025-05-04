@@ -25,7 +25,7 @@ import types.ErrorResponse
 import dto.ChunkMetadataMultipartUpload
 import utils.jwt
 import types.FileId
-import dto.UploadBody
+import dto.{UploadBody, ChunkDownloadBody}
 import types.ChunkId
 import model.chunk_exists
 import utils.{files, hash_chunk, jwt}
@@ -141,7 +141,9 @@ object chunk_service {
       file_complete_status
     )(body.token)
 
-  def download_chunk(chunk_id: ChunkId): IO[Response[IO]] =
+  def download_chunk(
+      chunk_id: ChunkId
+  ): IO[Response[IO]] =
     get_chunk_metadata(chunk_id).flatMap {
       case Some(data) =>
         read_file(construct_file_name(chunk_id)).flatMap {
@@ -154,6 +156,8 @@ object chunk_service {
               )
           case Left(msg) => BadRequest(ErrorResponse(msg))
         }
-      case None => BadRequest(ErrorResponse("Chunk with this ID doesn't exist"))
+      case None =>
+        BadRequest(ErrorResponse("Chunk with this ID doesn't exist"))
     }
+
 }

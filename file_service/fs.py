@@ -79,18 +79,23 @@ def download(cmd: str):
         print(req.json())
         return
     data = req.json()
-    print(data)
+    download_link = data["download_link"]
+    print(download_link)
+    chunk_data = data["data"]
 
     print(f"Reconstructing the file {file_name}...")
-    with open(file_name, "wb") as f:
-        for chunk in data:
-            chunk_id, chunk_sequence, byte_size = chunk.values()
+    with open(os.path.join(dest, file_name), "wb") as f:
+        for chunk in chunk_data:
+            chunk_id, chunk_sequence, _ = chunk.values()
             print(chunk_id)
-            response = requests.get(f"{URL}/chunk/download?chunk_id={chunk_id}")
+            response = requests.get(download_link, json={"chunk_id": chunk_id})
             if response.status_code == 200:
                 f.write(response.content)
                 print(f"Chunk #{chunk_sequence} downloaded successfully")
             else:
+                print(
+                    f"Chunk #{chunk_sequence} failed. Status Code: {response.status_code}"
+                )
                 print(f"Chunk #{chunk_sequence} didn't download: {response.text}")
 
 

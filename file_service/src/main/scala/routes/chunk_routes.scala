@@ -20,6 +20,7 @@ import org.http4s.server.Router
 import types.ErrorResponse
 import services.chunk_service
 import services.chunk_service.{upload_chunk, download_chunk}
+import dto.ChunkDownloadBody
 
 val chunk_routes = HttpRoutes
   .of[IO] {
@@ -46,6 +47,10 @@ val chunk_routes = HttpRoutes
             }
           )
         )
-    case GET -> Root / "download" :? ChunkIdQueryParamMatcher(id) =>
-      download_chunk(id)
+    case req @ GET -> Root / "download" =>
+      req.as[ChunkDownloadBody].attempt.flatMap {
+        case Left(err) => BadRequest(ErrorResponse("Invalid Body"))
+        case Right(ChunkDownloadBody(chunk_id)) =>
+          download_chunk(chunk_id)
+      }
   }

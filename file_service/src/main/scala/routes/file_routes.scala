@@ -34,6 +34,7 @@ import dto.FileCompletionBody
 import model.{get_files_by_folder_id, delete_file}
 import utils.jwt
 import utils.config
+import dto.DTOFileDownloadBody
 
 val file_routes = HttpRoutes
   .of[IO] {
@@ -59,10 +60,16 @@ val file_routes = HttpRoutes
 
     case GET -> Root / "download" :? FileIdQueryParamMatcher(id) =>
       get_file_chunks_metadata(id).flatMap {
-        case Right(lst) => Ok(lst)
         case Left(errorMsg) =>
           IO.println(errorMsg) *>
             InternalServerError("Internal Server Error")
+        case Right(lst) =>
+          Ok(
+            DTOFileDownloadBody(
+              s"${config.SERVICE_URL}:${config.SERVICE_PORT}/chunk/download",
+              lst
+            )
+          )
       }
 
     case req @ POST -> Root / "upload" =>
@@ -83,16 +90,19 @@ val file_routes = HttpRoutes
                   BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
                 case Right(file_id) =>
                   val token =
-                    jwt.encode_token[UploadBody](UploadBody(file_id))
+                    jwt.encode_token(UploadBody(file_id))
                   token match {
-                    case None => InternalServerError()
-                    case Some(token_data) =>
+                    case Left(err) =>
+                      IO.println(err) *> InternalServerError(
+                        "Internal Server Error"
+                      )
+                    case Right(token_data) =>
                       Ok(
                         FileUploadMetadataInserted(
                           "File Metadata Inserted",
                           token_data,
-                          "http://localhost:55555/chunk/upload",
-                          "http://localhost:55555/file/upload/complete",
+                          s"${config.SERVICE_URL}:${config.SERVICE_PORT}/chunk/upload",
+                          s"${config.SERVICE_URL}:${config.SERVICE_PORT}/file/upload/complete",
                           config.CHUNK_SIZE
                         ).asJson
                       )
