@@ -19,6 +19,8 @@ import org.http4s.ember.server._
 import org.http4s.implicits._
 import types.ErrorResponse
 import types.FolderId
+import dto.DTOFolderCreationBody
+import model.create_folder
 
 object folder_service {
   def get_folder_files_metadata(folder_id: FolderId): IO[Response[IO]] =
@@ -34,4 +36,7 @@ object folder_service {
             BadRequest(ErrorResponse(other).asJson)
         }
     }
+
+  def create_folder_metadata(body: DTOFolderCreationBody): IO[Response[IO]] =
+    create_folder(body).flatMap(folder => Ok(folder.asJson))
 }
