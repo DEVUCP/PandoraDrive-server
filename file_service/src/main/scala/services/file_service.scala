@@ -26,6 +26,7 @@ import types.FileUploadMetadataInserted
 import types.FolderId
 import utils.config
 import utils.jwt
+import cats.data.EitherT
 
 object file_service {
   def folder_files(folder_id: FolderId): IO[Response[IO]] =
@@ -35,18 +36,16 @@ object file_service {
     } yield resp
 
   def file_by_id(file_id: FileId): IO[Response[IO]] =
-    get_file_metadata_by_file_id(file_id).flatMap {
-      case Right(file) =>
-        Ok(file.asJson)
-
-      case Left(errorMsg) =>
-        errorMsg match {
-          case msg if msg.startsWith("No file found") =>
-            NotFound(ErrorResponse(msg).asJson)
-          case other =>
-            BadRequest(ErrorResponse(other).asJson)
-        }
-    }
+    EitherT(get_file_metadata_by_file_id(file_id)).value
+      .flatMap {
+        case Right(file) =>
+          Ok(file.asJson)
+        case Left(err) =>
+          IO.println(err) *>
+            InternalServerError(
+              ErrorResponse("Internal Server Error").asJson
+            )
+      }
 
   def download_file_metadata(file_id: FileId) =
     get_file_chunks_metadata(file_id).flatMap {

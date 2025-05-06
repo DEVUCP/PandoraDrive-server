@@ -18,7 +18,7 @@ case class FileMetadata(
     file_name: String,
     size_bytes: Int,
     mime_type: String,
-    owner_id: Int,
+    user_id: Int,
     status: String,
     uploaded_at: String,
     created_at: String,
@@ -36,7 +36,7 @@ def create_file_metadata_table(): IO[Unit] =
       uploaded_at TEXT NOT NULL,
       size_bytes bigint NOT NULL,
       mime_type TEXT NOT NULL,
-      owner_id int NOT NULL,
+      user_id int NOT NULL,
       status TEXT NOT NULL CHECK (status in ('Uploading', 'Uploaded', 'Flawed')),
       FOREIGN KEY(folder_id) REFERENCES folder_metadata(file_id)
       UNIQUE (folder_id, file_name)

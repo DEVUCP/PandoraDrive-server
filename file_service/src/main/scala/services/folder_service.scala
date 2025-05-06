@@ -22,6 +22,7 @@ import org.http4s.ember.server._
 import org.http4s.implicits._
 import types.ErrorResponse
 import types.FolderId
+import cats.data.EitherT
 
 object folder_service {
   def get_folder_files_metadata(folder_id: FolderId): IO[Response[IO]] =
@@ -42,5 +43,12 @@ object folder_service {
     create_folder(body).flatMap(folder => Ok(folder.asJson))
 
   def get_user_root_folder(user_id: Int): IO[Response[IO]] =
-    get_root_folder_by_user_id(user_id).flatMap(folder => Ok(folder.asJson))
+    get_root_folder_by_user_id(user_id)
+      .flatMap {
+        case Right(folder) => Ok(folder.asJson)
+        case Left(err) =>
+          IO.println(err) *> BadRequest(
+            ErrorResponse("Internal Server Error").asJson
+          )
+      }
 }

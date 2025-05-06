@@ -16,7 +16,7 @@ import types.FolderId
 def get_folder_metadata_by_folder_id(
     id: FolderId
 ): IO[Either[String, FolderMetadata]] =
-  sql"""select folder_id, parent_folder_id, folder_name, created_at, owner_id from folder_metadata where folder_id = $id"""
+  sql"""select folder_id, parent_folder_id, folder_name, created_at, user_id from folder_metadata where folder_id = $id"""
     .query[FolderMetadata]
     .unique
     .transact(transactor)
@@ -27,24 +27,28 @@ def get_folder_metadata_by_folder_id(
     }
 
 def get_root_folder_by_user_id(
-    id: Int
+    user_id: Int
 ): IO[Either[String, FolderMetadata]] =
-  sql"""select folder_id, parent_folder_id, folder_name, created_at, owner_id from folder_metadata where user_id = $id and parent_folder_id = $id"""
+  sql"""select folder_id, parent_folder_id, folder_name, created_at, user_id from folder_metadata where user_id = $user_id and parent_folder_id is null"""
     .query[FolderMetadata]
-    .unique
+    .option
     .transact(transactor)
-    .attempt
-    .map {
-      case Right(h) => Right(h)
-      case Left(e)  => Left(s"Database error: ${e.getMessage}")
+    .flatMap {
+      case Some(folder) => IO.pure(Right(folder))
+      case None =>
+        val created_at = java.time.Instant.now().toString
+        sql"""insert into folder_metadata(folder_name, created_at, user_id) values('root', $created_at, $user_id)""".update.run
+          .transact(transactor)
+          .flatMap { _ => get_root_folder_by_user_id(user_id) }
+          .handleError(err => Left(s"Database Error: ${err.getMessage}"))
     }
 
 def create_folder(body: DTOFolderCreationBody): IO[FolderMetadata] =
-  sql"""insert into folder_metadata(folder_name, parent_folder_id, owner_id, created_at) values(${body.folder_name}, ${body.parent_folder_id}, ${body.owner_id})""".update
+  sql"""insert into folder_metadata(folder_name, parent_folder_id, user_id, created_at) values(${body.folder_name}, ${body.parent_folder_id}, ${body.user_id})""".update
     .withUniqueGeneratedKeys[Int]("folder_id")
     .transact(transactor)
     .flatMap { folder_id =>
-      sql"""select folder_id, parent_folder_id, folder_name,created_at, owner_id from folder_metadata where folder_id=$folder_id"""
+      sql"""select folder_id, parent_folder_id, folder_name,created_at, user_id from folder_metadata where folder_id=$folder_id"""
         .query[FolderMetadata]
         .unique
         .transact(transactor)

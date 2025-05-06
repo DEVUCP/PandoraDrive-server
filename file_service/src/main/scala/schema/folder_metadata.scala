@@ -16,7 +16,7 @@ case class FolderMetadata(
     parent_folder_id: Option[Int],
     folder_name: String,
     created_at: String,
-    owner_id: Int
+    user_id: Int
 )
 
 def create_folder_metadata_table(): IO[Unit] =
@@ -26,6 +26,6 @@ def create_folder_metadata_table(): IO[Unit] =
       parent_folder_id int NULL,
       folder_name TEXT NOT NULL,
       created_at TEXT NOT NULL,
-      owner_id int NOT NULL,
+      user_id int NOT NULL,
       FOREIGN KEY(parent_folder_id) REFERENCES folder_metadata(folder_id)
      );""".update.run.void.transact(transactor)

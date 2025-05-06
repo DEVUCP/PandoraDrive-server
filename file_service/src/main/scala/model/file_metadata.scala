@@ -19,19 +19,17 @@ def get_file_metadata_by_file_id(
     id: FileId
 ): IO[Either[String, FileMetadata]] =
   sql"""
-      select file_id, folder_id, file_name, size_bytes, mime_type, owner_id, status, uploaded_at, created_at, modified_at
+      select file_id, folder_id, file_name, size_bytes, mime_type, user_id, status, uploaded_at, created_at, modified_at
       from file_metadata
       where file_id = $id;
     """
     .query[FileMetadata]
-    .to[List]
+    .unique
     .transact(transactor)
     .attempt
     .map {
-      case Right(Nil)      => Left(s"No file found with ID $id")
-      case Right(h :: Nil) => Right(h)
-      case Right(_)        => Left(s"Multiple files with same file_id?")
-      case Left(e)         => Left(s"Database error: ${e.getMessage}")
+      case Right(h) => Right(h)
+      case Left(e)  => Left(s"Database error: ${e.getMessage}")
     }
 
 def get_file_id_by_file_name_and_folder(
@@ -94,11 +92,11 @@ def create_file_metadata(body: FileCreationBody): IO[Either[String, Long]] = {
           sql"""
             insert into file_metadata (
               file_name, folder_id, size_bytes, mime_type,
-              owner_id, status, created_at, uploaded_at, modified_at
+              user_id, status, created_at, uploaded_at, modified_at
             )
             values (
               ${body.file_name}, ${body.folder_id}, ${body.size_bytes},
-              ${body.mime_type}, ${body.owner_id}, 'Uploading',
+              ${body.mime_type}, ${body.user_id}, 'Uploading',
               ${body.created_at}, $uploaded_at, ${body.modified_at}
             )
           """
@@ -136,7 +134,7 @@ def get_files_by_folder_id(folder_id: FolderId): IO[
 ] =
   implicit val bigIntMeta: Meta[BigInt] = Meta[Long].timap(BigInt(_))(_.toLong)
 
-  sql"""select file_id, folder_id, file_name, created_at, modified_at, uploaded_at, size_bytes, mime_type, owner_id, status from file_metadata where folder_id = $folder_id"""
+  sql"""select file_id, folder_id, file_name, created_at, modified_at, uploaded_at, size_bytes, mime_type, user_id, status from file_metadata where folder_id = $folder_id"""
     .query[FileMetadata]
     .to[List]
     .transact(transactor)
