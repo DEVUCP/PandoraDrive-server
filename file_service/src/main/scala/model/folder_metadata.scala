@@ -1,18 +1,20 @@
 package model
 
+import java.sql.SQLException
+
 import cats._
 import cats.data._
+import cats.implicits._
+
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.implicits._
+
 import db.transactor
 import doobie._
 import doobie.implicits._
 import dto.DTOFolderCreationBody
-import schema.FileMetadata
-import schema.FolderMetadata
+import schema.{FileMetadata, FolderMetadata}
 import types.FolderId
-import java.sql.SQLException
 
 def get_folder_metadata_by_folder_id(
     id: FolderId
@@ -66,3 +68,10 @@ def create_folder(
         IO.println(s"Unexpected DB error: ${e.getMessage}") *>
           IO.pure(Left("Unexpected database error"))
     }
+
+def validate_folder_user(folder_id: FolderId, user_id: Int): IO[Boolean] =
+  sql"""select 1 from folder_metadata where user_id = $user_id and folder_id = $folder_id"""
+    .query[Int]
+    .option
+    .map(_.isDefined)
+    .transact(transactor)

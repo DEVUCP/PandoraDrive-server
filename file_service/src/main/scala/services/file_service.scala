@@ -1,32 +1,18 @@
 package services
 
+import cats.data.EitherT
+
 import cats.effect.IO
-import dto.DTOFileDownloadBody
-import dto.FileCompletionBody
-import dto.FileCreationBody
-import dto.UploadBody
+
+import dto.{DTOFileDownloadBody, FileCompletionBody, FileCreationBody, UploadBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
-import model.are_file_chunks_uploaded
-import model.create_file_metadata
-import model.delete_file_metadata
-import model.get_file_chunks_metadata
-import model.get_file_id_by_file_name_and_folder
-import model.get_file_metadata_by_file_id
-import model.get_files_by_folder_id
-import model.remove_file_chunks
-import model.set_file_status_uploaded
-import model.update_file_metadata
+import model.{are_file_chunks_uploaded, create_file_metadata, delete_file_metadata, get_file_chunks_metadata, get_file_id_by_file_name_and_folder, get_file_metadata_by_file_id, get_files_by_folder_id, remove_file_chunks, set_file_status_uploaded, update_file_metadata, validate_folder_user}
 import org.http4s.Response
 import org.http4s.circe._
 import org.http4s.dsl.io.*
-import types.ErrorResponse
-import types.FileId
-import types.FileUploadMetadataInserted
-import types.FolderId
-import utils.config
-import utils.jwt
-import cats.data.EitherT
+import types.{ErrorResponse, FileId, FileUploadMetadataInserted, FolderId}
+import utils.{config, jwt}
 
 object file_service {
   def folder_files(folder_id: FolderId): IO[Response[IO]] =
@@ -61,38 +47,42 @@ object file_service {
         )
     }
 
-  def upload_file_metadata(body: FileCreationBody) =
-    get_file_id_by_file_name_and_folder(body.file_name, body.folder_id)
-      .flatMap { data =>
-        val db_request = data match {
-          case Some(id) => update_file_metadata(body, id)
-          case None     => create_file_metadata(body)
-        }
-
-        db_request.flatMap {
-          case Left(err) =>
-            BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
-          case Right(file_id) =>
-            val token =
-              jwt.encode_token(UploadBody(file_id))
-            token match {
-              case Left(err) =>
-                IO.println(err) *> InternalServerError(
-                  "Internal Server Error"
-                )
-              case Right(token_data) =>
-                Ok(
-                  FileUploadMetadataInserted(
-                    "File Metadata Inserted",
-                    token_data,
-                    s"${config.SERVICE_URL}:${config.SERVICE_PORT}/chunk/upload",
-                    s"${config.SERVICE_URL}:${config.SERVICE_PORT}/file/upload/complete",
-                    config.CHUNK_SIZE
-                  ).asJson
-                )
+  def upload_file_metadata(body: FileCreationBody): IO[Response[IO]] =
+    validate_folder_user(body.user_id, body.folder_id).flatMap {
+      case false => BadRequest(ErrorResponse("Invalid Folder data").asJson)
+      case true =>
+        get_file_id_by_file_name_and_folder(body.file_name, body.folder_id)
+          .flatMap { data =>
+            val db_request = data match {
+              case Some(id) => update_file_metadata(body, id)
+              case None     => create_file_metadata(body)
             }
-        }
-      }
+
+            db_request.flatMap {
+              case Left(err) =>
+                BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
+              case Right(file_id) =>
+                val token =
+                  jwt.encode_token(UploadBody(file_id))
+                token match {
+                  case Left(err) =>
+                    IO.println(err) *> InternalServerError(
+                      "Internal Server Error"
+                    )
+                  case Right(token_data) =>
+                    Ok(
+                      FileUploadMetadataInserted(
+                        "File Metadata Inserted",
+                        token_data,
+                        s"${config.SERVICE_URL}:${config.SERVICE_PORT}/chunk/upload",
+                        s"${config.SERVICE_URL}:${config.SERVICE_PORT}/file/upload/complete",
+                        config.CHUNK_SIZE
+                      ).asJson
+                    )
+                }
+            }
+          }
+    }
 
   def upload_complete_curried(
       is_file_chunks_uploaded: FileId => IO[Boolean],

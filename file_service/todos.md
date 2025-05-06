@@ -2,7 +2,6 @@
 - [x] Implement chunk upload endpoint
     - A chunk must have a reference count and a garbage collector to remove unreferenced chunks. This is how I choose to do it
 - [x] Implement chunk checkpon endpoint
-- [x] Create per-chunk checksum 
 - [x] Find an alternative to unsafeRunSync
 - [ ] Do validations on folders before uploading a file
 - [ ] Refactor all for-comprehension statements to use flatMap instead

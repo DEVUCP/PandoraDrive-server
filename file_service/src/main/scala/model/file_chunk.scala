@@ -2,14 +2,15 @@ package model
 
 import cats._
 import cats.data._
-import cats.effect.IO
 import cats.implicits._
+
+import cats.effect.IO
+
 import db.transactor
 import doobie._
 import doobie.implicits._
 import schema.FileChunkRelation
-import types.ChunkId
-import types.FileId
+import types.{ChunkId, FileId}
 import utils.config
 
 def create_file_chunk_link(

@@ -1,23 +1,16 @@
 package backend
 
-import cats.effect.ExitCode
-import cats.effect.IO
-import cats.effect.IOApp
-import cats.effect.*
+import cats.effect.{ExitCode, IO, IOApp, _}
+
 import com.comcast.ip4s.*
 import io.circe.generic.auto._
 import io.circe.syntax._
-import org.http4s.*
 import org.http4s._
 import org.http4s.circe._
-import org.http4s.dsl.io.*
 import org.http4s.dsl.io._
-import org.http4s.ember.server.*
 import org.http4s.ember.server._
 import org.http4s.server.Router
-import routes.chunk_routes
-import routes.file_routes
-import routes.folder_routes
+import routes.{chunk_routes, file_routes, folder_routes}
 import schema.initialize_schemas
 import utils.config
 

@@ -2,9 +2,11 @@ package schema
 
 import cats._
 import cats.data._
+import cats.implicits._
+
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.implicits._
+
 import db.transactor
 import doobie._
 import doobie.implicits._

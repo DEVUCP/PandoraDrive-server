@@ -1,12 +1,11 @@
 package utils
-import cats.effect.IO
-import fs2.Stream
-import fs2.io.file.Flags
-import fs2.io.file.Path
-import fs2.io.file.{Files => FS2Files}
-
 import java.io.IOException
 import java.nio.file.StandardOpenOption._
+
+import cats.effect.IO
+
+import fs2.Stream
+import fs2.io.file.{Files => FS2Files, Flags, Path}
 
 object files {
   def store_file(file: Array[Byte], path: String): IO[Unit] = {

@@ -1,10 +1,8 @@
 package utils
 
 import java.util.Base64
-import javax.crypto.Cipher
-import javax.crypto.SecretKey
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
+import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
+import javax.crypto.{Cipher, SecretKey}
 
 object encryption {
   private val algorithm = "AES"

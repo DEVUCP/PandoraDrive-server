@@ -2,18 +2,17 @@ package model
 
 import cats._
 import cats.data._
+import cats.implicits._
+
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import cats.implicits._
+
 import db.transactor
 import doobie._
 import doobie.implicits._
-import dto.FileCreationBody
-import dto.validate_file_creation_body
-import schema.FileMetadata
-import schema.FolderMetadata
-import types.FileId
-import types.FolderId
+import dto.{FileCreationBody, validate_file_creation_body}
+import schema.{FileMetadata, FolderMetadata}
+import types.{FileId, FolderId}
 
 def get_file_metadata_by_file_id(
     id: FileId

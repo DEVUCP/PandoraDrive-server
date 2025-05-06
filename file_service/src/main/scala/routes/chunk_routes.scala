@@ -1,10 +1,9 @@
 package routes
 
-import cats.effect.ExitCode
-import cats.effect.IO
-import cats.effect.IOApp
-import cats.effect.*
 import cats.implicits._
+
+import cats.effect.{ExitCode, IO, IOApp, _}
+
 import com.comcast.ip4s.*
 import dto.ChunkDownloadBody
 import io.circe.generic.auto._
@@ -15,12 +14,10 @@ import org.http4s.circe._
 import org.http4s.dsl.io.*
 import org.http4s.ember.server.*
 import org.http4s.implicits._
-import org.http4s.multipart.Multipart
-import org.http4s.multipart.*
+import org.http4s.multipart.{Multipart, _}
 import org.http4s.server.Router
 import services.chunk_service
-import services.chunk_service.download_chunk
-import services.chunk_service.upload_chunk
+import services.chunk_service.{download_chunk, upload_chunk}
 import types.ErrorResponse
 
 val chunk_routes = HttpRoutes

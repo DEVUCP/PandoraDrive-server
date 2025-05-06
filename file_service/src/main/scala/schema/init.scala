@@ -2,8 +2,9 @@ package schema
 
 import cats._
 import cats.data._
-import cats.effect.IO
 import cats.implicits._
+
+import cats.effect.IO
 
 def initialize_schemas(): IO[Unit] = {
   create_folder_metadata_table()

@@ -1,28 +1,21 @@
 package services
 
-import cats.effect.ExitCode
-import cats.effect.IO
-import cats.effect.IOApp
-import cats.effect.*
+import cats.data.EitherT
 import cats.implicits._
+
+import cats.effect.{ExitCode, IO, IOApp, _}
+
 import com.comcast.ip4s.*
 import dto.DTOFolderCreationBody
 import io.circe.generic.auto._
 import io.circe.syntax._
-import model.create_folder
-import model.get_folder_metadata_by_folder_id
-import model.get_root_folder_by_user_id
-import org.http4s.*
+import model.{create_folder, get_folder_metadata_by_folder_id, get_root_folder_by_user_id}
 import org.http4s._
 import org.http4s.circe._
-import org.http4s.dsl.io.*
 import org.http4s.dsl.io._
-import org.http4s.ember.server.*
 import org.http4s.ember.server._
 import org.http4s.implicits._
-import types.ErrorResponse
-import types.FolderId
-import cats.data.EitherT
+import types.{ErrorResponse, FolderId}
 
 object folder_service {
   def get_folder_files_metadata(folder_id: FolderId): IO[Response[IO]] =
