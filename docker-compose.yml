@@ -9,6 +9,7 @@ services:
       - ANALYTICS_SERVICE_PORT
       - CHATBOT_SERVICE_PORT
       - FILE_SERVICE_PORT
+      - DB_URL=jdbc:sqlite:db.db
     ports:
       - "${GATEWAY_PORT}:${GATEWAY_PORT}"
 
@@ -38,15 +39,15 @@ services:
     ports:
       - "${CHATBOT_SERVICE_PORT}:${CHATBOT_SERVICE_PORT}"
 
-  template:
-    build:
-      context: ./template_service
-      dockerfile: dockerfile
-    environment:
-      - GATEWAY_PORT
-      - TEMPLATE_PORT
-    ports:
-      - "${TEMPLATE_PORT}:${TEMPLATE_PORT}"
+  # template:
+  #   build:
+  #     context: ./template_service
+  #     dockerfile: dockerfile
+  #   environment:
+  #     - GATEWAY_PORT
+  #     - TEMPLATE_PORT
+  #   ports:
+  #     - "${TEMPLATE_PORT}:${TEMPLATE_PORT}"
 
   file_service:
     build:
