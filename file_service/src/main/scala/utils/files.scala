@@ -23,8 +23,8 @@ object files {
     val fullPath = Path("storage") / path
     try {
       Right(FS2Files[IO].readAll(fullPath, 4096, Flags.Read))
-    } catch {
-      case _: IOException => Left(s"Failed to read the file: $path")
+    } catch { IOException =>
+      Left(s"Failed to read the file: $path")
     }
   }
 }
