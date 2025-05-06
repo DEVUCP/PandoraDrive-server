@@ -1,15 +1,14 @@
 import argparse
 import datetime
-import hashlib
 import json
 import mimetypes
 import os
 import sys
-from typing import Tuple
+from typing import Dict
 
 import requests
 
-URL = "http://localhost:55551"
+URL = "http://localhost:55555"
 
 
 def upload_file(file_path: str):
@@ -25,12 +24,18 @@ def upload_file(file_path: str):
     stat["owner_id"] = 1
 
     try:
-        token, chunk_size = init_upload(stat)
-        print("Token: ", token)
-        print("Chunk Size: ", chunk_size)
+        init_data = init_upload(stat)
     except requests.exceptions.RequestException as e:
         print(f"Error: Failed to initialize upload - {str(e)}", file=sys.stderr)
         sys.exit(1)
+
+    message = init_data["message"]
+    token = init_data["token"]
+    upload_link = init_data["upload_link"]
+    complete_link = init_data["complete_link"]
+    chunk_size = init_data["chunk_size"]
+
+    print(f"Initilization message: {message}")
 
     try:
         with open(file_path, "rb") as f:
@@ -47,22 +52,29 @@ def upload_file(file_path: str):
                 chunk = f.read(current_chunk_size)
 
                 upload_chunk(
+                    upload_link=upload_link,
                     chunk=chunk,
                     chunk_sequence=chunk_index,
                     token=token,
                     chunk_size=current_chunk_size,  # Send actual chunk size
                 )
+                print(f"Chunk #{chunk_index} uploaded")
     except:
         sys.exit(1)
 
-    complete_request(token)
+    complete_request(complete_link, token)
 
 
-def complete_request(token: str):
+def complete_request(
+    complete_link: str,
+    token: str,
+):
     body = {"token": token}
-    req = requests.post(URL + "/file/upload/complete", json=body)
+    print(body)
+    req = requests.post(complete_link, json=body)
     print(f"Complete Response Done. Status: {req.status_code}")
-    print(req.content)
+    if req.content:
+        print(req.content)
 
 
 def gather_stat(file_path: str):
@@ -84,18 +96,17 @@ def gather_stat(file_path: str):
     }
 
 
-def init_upload(body: dict) -> Tuple[str, int]:
+def init_upload(body: dict) -> Dict:
     """Initialize file upload and return token"""
-    req = requests.post(f"{URL}/file/upload/init", json=body)
-    assert req.status_code == 200, "The initialization failed"
+    req = requests.post(f"{URL}/file/upload", json=body)
     json_response = req.json()
-    return (
-        json_response["token"],
-        1024 * 1024,
-    )  # TODO: Adjust accordingly to make the init calculate the regular chunk size used by the server
+    assert req.status_code == 200, "The initialization failed"
+    return json_response
 
 
-def upload_chunk(chunk: bytes, chunk_sequence: int, chunk_size: int, token: str):
+def upload_chunk(
+    upload_link: str, chunk: bytes, chunk_sequence: int, chunk_size: int, token: int
+):
     """Upload one Chunk with the specific sequence, chunk_size"""
     metadata = {
         "chunk_sequence": chunk_sequence,
@@ -103,10 +114,8 @@ def upload_chunk(chunk: bytes, chunk_sequence: int, chunk_size: int, token: str)
         "token": token,
     }
 
-    print(json.dumps(metadata))
-    print("Chunk SHA256:", hashlib.sha256(chunk).hexdigest())
     requests.post(
-        f"{URL}/file/upload/chunk",
+        upload_link,
         files={
             "metadata": (None, json.dumps(metadata), "application/json"),
             "chunk": (f"chunk_{chunk_sequence}.bin", chunk, "application/octet-stream"),

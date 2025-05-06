@@ -13,15 +13,15 @@ import io.circe.Decoder
 object jwt {
   private val JWT_ALGORITHM = JwtAlgorithm.HS256
 
-  def create_token[A: io.circe.Encoder](payload: A): Option[String] = {
-    if (config.JWT_SECRET.isEmpty()) return None
+  def encode_token[A: io.circe.Encoder](payload: A): Either[String, String] = {
+    if (config.JWT_SECRET.isEmpty()) return Left("Empty JWT_SECRET");
 
     implicit val clock: Clock = Clock.systemUTC()
     val json = payload.asJson.noSpaces
     val claim = JwtClaim(content = json).issuedNow
       .expiresIn(config.JWT_EXPIRY_IN_SECONDS)
 
-    Some(Jwt.encode(claim, config.JWT_SECRET, JWT_ALGORITHM))
+    Right(Jwt.encode(claim, config.JWT_SECRET, JWT_ALGORITHM))
   }
 
   def decode_token[A: io.circe.Decoder](token: String): Either[String, A] = {

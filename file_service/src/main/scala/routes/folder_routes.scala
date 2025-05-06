@@ -22,13 +22,12 @@ import types.ErrorResponse
 import org.http4s.server.Router
 
 val folder_routes = HttpRoutes.of[IO] {
-  case req @ GET -> Root :? IdQueryParamMatcher(id) =>
+  case req @ GET -> Root :? FileIdQueryParamMatcher(id) =>
     get_folder_metadata_by_folder_id(id).flatMap {
       case Right(folder) =>
         Ok(folder.asJson)
 
       case Left(errMsg) =>
-        // Optional: differentiate error types for appropriate HTTP status codes
         errMsg match {
           case msg if msg.startsWith("No folder exists") =>
             NotFound(ErrorResponse(msg).asJson)

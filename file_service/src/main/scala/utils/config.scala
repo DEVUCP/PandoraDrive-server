@@ -9,4 +9,8 @@ object config {
     sys.env.get("CHUNK_SIZE").flatMap(_.toIntOption).getOrElse(1024 * 1024)
   val JWT_EXPIRY_IN_SECONDS =
     sys.env.get("JWT_EXPIRY_IN_SECONDS").flatMap(_.toIntOption).getOrElse(3600)
+  val SERVICE_PORT: String =
+    sys.env.getOrElse("FILE_SERVICE_PORT", "55555")
+  val SERVICE_URL: String =
+    sys.env.getOrElse("FILE_SERVICE_URL", "http://localhost")
 }

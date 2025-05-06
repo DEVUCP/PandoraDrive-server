@@ -11,7 +11,8 @@ import doobie.util.transactor.Transactor
 import utils.config
 
 val transactor: Transactor[IO] = Transactor.fromDriverManager[IO](
-  driver = "org.sqlite.JDBC", // driver classname
-  url = config.DB_URL, // connect URL
+  driver = "org.sqlite.JDBC",
+  url = config.DB_URL,
+  // url = s"${config.DB_URL}?foreign_keys=true", TODO: Enable Foreign keys, but first hand the missing folder structure
   logHandler = None
 )
