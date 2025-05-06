@@ -12,13 +12,11 @@ import org.http4s.multipart.Multipart
 import io.circe.Json
 import io.circe.generic.auto._
 import org.http4s.implicits._
+import utils.config
 
 object FileRoutes {
 
-  var port = sys.env.get("FILE_SERVICE_PORT") match {
-    case Some(port) => Port.fromString(port).getOrElse(port"55555")
-    case None => port"55555"
-  }
+  val file_service_port = config.FILE_SERVICE_PORT
 
   def routeRequestImpl[T](req: Request[IO], uriString: String, method : Method)(implicit decoder: EntityDecoder[IO, T], encoder: EntityEncoder[IO, T]): cats.effect.IO[org.http4s.Response[cats.effect.IO]] = {
     EmberClientBuilder.default[IO].build.use { client =>
@@ -53,7 +51,7 @@ object FileRoutes {
       Ok("List of files & their metadata")
     
     case req @ GET -> Root / "ping" =>
-      routeRequestJson(req, s"http://localhost:$port/ping", Method.GET)
+      routeRequestJson(req, s"http://localhost:$file_service_port/ping", Method.GET)
     
     case req @ POST -> Root / "upload" / "init" => 
       Ok("placeholder upload initialize")      

@@ -24,6 +24,15 @@ lazy val root = (project in file("."))
 
       // Testing
       "org.typelevel" %% "cats-effect-testing-scalatest" % "1.5.0" % Test,
-      "org.scalatest" %% "scalatest" % "3.2.18" % Test
+      "org.scalatest" %% "scalatest" % "3.2.18" % Test,
+
+      "org.xerial" % "sqlite-jdbc" % "3.23.1",
+      "org.tpolecat" %% "doobie-core" % "1.0.0-RC8",
+
+      "org.tpolecat" %% "doobie-h2" % "1.0.0-RC8", // H2 driver 1.4.200 + type mappings.
+      "org.tpolecat" %% "doobie-postgres" % "1.0.0-RC8",
+      "org.tpolecat" %% "doobie-hikari" % "1.0.0-RC8", // HikariCP transactor.
+      "org.tpolecat" %% "doobie-specs2" % "1.0.0-RC8" % "test", // Specs2 support for typechecking statements.
+      "org.tpolecat" %% "doobie-scalatest" % "1.0.0-RC8" % "test" 
     )
   )
