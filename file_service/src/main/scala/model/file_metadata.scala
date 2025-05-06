@@ -123,7 +123,7 @@ def create_file_metadata(body: FileCreationBody): IO[Either[String, Long]] = {
   } yield result
 }
 
-def file_complete_status(file_id: FileId): IO[Unit] = {
+def set_file_status_uploaded(file_id: FileId): IO[Unit] = {
   sql"""
   update file_metadata set status='Uploaded' where file_id=$file_id
   """.update.run.void.transact(transactor)
@@ -145,7 +145,6 @@ def get_files_by_folder_id(folder_id: FolderId): IO[
         IO.pure(Nil)
     }
 
-def delete_file(file_id: FileId): IO[Unit] =
-  remove_file_chunks(file_id) *>
-    sql"""delete from file_metadata where file_id = $file_id""".update.run.void
-      .transact(transactor)
+def delete_file_metadata(file_id: FileId): IO[Unit] =
+  sql"""delete from file_metadata where file_id = $file_id""".update.run.void
+    .transact(transactor)

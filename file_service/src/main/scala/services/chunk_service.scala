@@ -32,7 +32,6 @@ import utils.{files, hash_chunk, jwt}
 import model.{
   create_file_chunk_link,
   are_file_chunks_uploaded,
-  file_complete_status,
   get_chunk_metadata,
   chunk_reference_add,
   create_chunk_metadata
@@ -119,27 +118,6 @@ object chunk_service {
     },
     create_file_chunk_link
   )
-
-  def upload_complete_curried(
-      is_file_chunks_uploaded: FileId => IO[Boolean],
-      file_complete_status: FileId => IO[Unit]
-  )(token: String): IO[Response[IO]] =
-    jwt.decode_token[UploadBody](token) match {
-      case Left(err) => BadRequest(ErrorResponse("Invalid body"))
-      case Right(UploadBody(file_id)) =>
-        is_file_chunks_uploaded(file_id).flatMap {
-          case false => NotFound(ErrorResponse("Chunks are not uploaded"))
-          case true =>
-            file_complete_status(file_id) *>
-              Ok()
-        }
-    }
-
-  def upload_complete(body: FileCompletionBody) =
-    upload_complete_curried(
-      are_file_chunks_uploaded,
-      file_complete_status
-    )(body.token)
 
   def download_chunk(
       chunk_id: ChunkId
