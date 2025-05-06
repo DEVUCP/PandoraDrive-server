@@ -4,13 +4,13 @@ import cats._
 import cats.data._
 import cats.effect.IO
 import cats.implicits._
+import db.transactor
 import doobie._
 import doobie.implicits._
-
-import types.{FileId, ChunkId}
-import db.transactor
-import utils.config
 import schema.FileChunkRelation
+import types.ChunkId
+import types.FileId
+import utils.config
 
 def create_file_chunk_link(
     file_id: FileId,

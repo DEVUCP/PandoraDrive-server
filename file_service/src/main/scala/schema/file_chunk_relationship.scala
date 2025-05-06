@@ -1,16 +1,16 @@
 package schema
-import doobie._
-import doobie.implicits._
 import cats._
 import cats.data._
 import cats.effect.IO
-import cats.implicits._
 import cats.effect.unsafe.implicits.global
+import cats.implicits._
+import db.transactor
+import doobie._
+import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.circe.Encoder
-
-import db.transactor
-import types.{ChunkId, FileId}
+import types.ChunkId
+import types.FileId
 
 case class FileChunkRelation(
     chunk_id: ChunkId,

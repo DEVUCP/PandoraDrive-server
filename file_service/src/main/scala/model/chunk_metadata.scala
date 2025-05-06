@@ -1,19 +1,19 @@
 package model
 
-import doobie._
-import doobie.implicits._
 import cats._
 import cats.data._
 import cats.effect.IO
-import cats.implicits._
 import cats.effect.unsafe.implicits.global
-import io.circe.Encoder
-import types.{ChunkId, FileId}
-
-import dto.{ChunkMetadataMultipartUpload, DTOChunkMetadata}
-import types.ChunkId
+import cats.implicits._
 import db.transactor
+import doobie._
+import doobie.implicits._
+import dto.ChunkMetadataMultipartUpload
+import dto.DTOChunkMetadata
+import io.circe.Encoder
 import schema.ChunkMetadata
+import types.ChunkId
+import types.FileId
 
 def get_chunk_metadata(chunkId: ChunkId): IO[Option[ChunkMetadata]] = {
   sql"""

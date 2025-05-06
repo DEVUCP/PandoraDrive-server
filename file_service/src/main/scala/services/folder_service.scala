@@ -1,4 +1,4 @@
-package routes
+package services
 
 import cats.effect.ExitCode
 import cats.effect.IO
@@ -17,13 +17,12 @@ import org.http4s.dsl.io._
 import org.http4s.ember.server.*
 import org.http4s.ember.server._
 import org.http4s.implicits._
-import org.http4s.server.Router
-import schema.initialize_schemas
 import types.ErrorResponse
+import types.FolderId
 
-val folder_routes = HttpRoutes.of[IO] {
-  case req @ GET -> Root :? FileIdQueryParamMatcher(id) =>
-    get_folder_metadata_by_folder_id(id).flatMap {
+object folder_service {
+  def get_folder_files_metadata(folder_id: FolderId): IO[Response[IO]] =
+    get_folder_metadata_by_folder_id(folder_id).flatMap {
       case Right(folder) =>
         Ok(folder.asJson)
 

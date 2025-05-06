@@ -1,14 +1,16 @@
 package utils
 
-import pdi.jwt.{Jwt, JwtAlgorithm, JwtClaim}
-import utils.config
-import io.circe.syntax._
+import io.circe.Decoder
 import io.circe.Encoder
-import io.circe.Decoder
-import io.circe.parser.decode
 import io.circe.KeyDecoder.decodeKeyString
+import io.circe.parser.decode
+import io.circe.syntax._
+import pdi.jwt.Jwt
+import pdi.jwt.JwtAlgorithm
+import pdi.jwt.JwtClaim
+import utils.config
+
 import java.time.Clock
-import io.circe.Decoder
 
 object jwt {
   private val JWT_ALGORITHM = JwtAlgorithm.HS256

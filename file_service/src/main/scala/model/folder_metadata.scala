@@ -3,13 +3,13 @@ package model
 import cats._
 import cats.data._
 import cats.effect.IO
-import cats.implicits._
 import cats.effect.unsafe.implicits.global
+import cats.implicits._
+import db.transactor
 import doobie._
 import doobie.implicits._
-
-import schema.{FileMetadata, FolderMetadata}
-import db.transactor
+import schema.FileMetadata
+import schema.FolderMetadata
 import types.FolderId
 
 def get_folder_metadata_by_folder_id(

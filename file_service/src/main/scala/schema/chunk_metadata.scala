@@ -1,17 +1,16 @@
 package schema
 
-import doobie._
-import doobie.implicits._
 import cats._
 import cats.data._
 import cats.effect.IO
-import cats.implicits._
 import cats.effect.unsafe.implicits.global
+import cats.implicits._
+import db.transactor
+import doobie._
+import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.circe.Encoder
-
 import types.ChunkId
-import db.transactor
 
 case class ChunkMetadata(
     chunk_id: ChunkId,

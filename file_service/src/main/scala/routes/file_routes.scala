@@ -1,30 +1,29 @@
 package routes
 
-import cats.implicits._
-import org.http4s.implicits._
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
 import cats.effect.*
-import org.http4s.*
-import org.http4s.dsl.io.*
-import org.http4s.multipart.*
+import cats.implicits._
 import com.comcast.ip4s.*
-
-import cats.effect.{IO, IOApp, ExitCode}
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.http4s.circe._
-import org.http4s.multipart.Multipart
-import org.http4s.circe.CirceEntityCodec._
-import org.http4s.server.Router
-
-import dto.{
-  FileCreationBody,
-  UploadBody,
-  ChunkMetadataMultipartUpload,
-  FileCompletionBody
-}
+import dto.ChunkMetadataMultipartUpload
 import dto.DTOFileDownloadBody
+import dto.FileCompletionBody
+import dto.FileCreationBody
+import dto.UploadBody
+import io.circe.generic.auto._
+import io.circe.syntax._
+import org.http4s.*
+import org.http4s.circe.CirceEntityCodec._
+import org.http4s.circe._
+import org.http4s.dsl.io.*
+import org.http4s.implicits._
+import org.http4s.multipart.Multipart
+import org.http4s.multipart.*
+import org.http4s.server.Router
 import services.file_service
-import types.{ErrorResponse, FileUploadMetadataInserted}
+import types.ErrorResponse
+import types.FileUploadMetadataInserted
 
 val file_routes = HttpRoutes
   .of[IO] {

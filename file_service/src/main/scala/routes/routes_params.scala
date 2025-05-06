@@ -1,7 +1,9 @@
 package routes
 
 import org.http4s.dsl.impl.QueryParamDecoderMatcher
-import types.{FileId, FolderId, ChunkId}
+import types.ChunkId
+import types.FileId
+import types.FolderId
 object FileIdQueryParamMatcher
     extends QueryParamDecoderMatcher[FileId]("file_id")
 object FolderIdQueryParamMatcher

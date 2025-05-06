@@ -1,43 +1,43 @@
 package services
+import cats.effect.ExitCode
+import cats.effect.IO
+import cats.effect.IOApp
+import cats.effect.*
 import cats.effect.unsafe.implicits.global
 import cats.implicits._
-import org.http4s.implicits._
-import cats.effect.*
+import com.comcast.ip4s.*
+import dto.ChunkDownloadBody
+import dto.ChunkMetadataMultipartUpload
+import dto.FileCompletionBody
+import dto.UploadBody
+import io.circe.generic.auto._
+import io.circe.generic.auto._
+import io.circe.parser._
+import io.circe.syntax._
+import model.are_file_chunks_uploaded
+import model.chunk_exists
+import model.chunk_reference_add
+import model.create_chunk_metadata
+import model.create_file_chunk_link
+import model.get_chunk_metadata
+import org.http4s.MediaType
 import org.http4s.*
+import org.http4s.circe.CirceEntityCodec._
+import org.http4s.circe._
 import org.http4s.dsl.io.*
 import org.http4s.ember.server.*
-import org.http4s.multipart.*
-import com.comcast.ip4s.*
-
 import org.http4s.headers.`Content-Type`
-import org.http4s.MediaType
-import cats.effect.{IO, IOApp, ExitCode}
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.http4s.circe._
-import io.circe.parser._
-import io.circe.generic.auto._
+import org.http4s.implicits._
 import org.http4s.multipart.Multipart
-import org.http4s.circe.CirceEntityCodec._
+import org.http4s.multipart.*
 import org.http4s.server.Router
-
-import types.ErrorResponse
-import dto.ChunkMetadataMultipartUpload
-import utils.jwt
-import types.FileId
-import dto.{UploadBody, ChunkDownloadBody}
 import types.ChunkId
-import model.chunk_exists
-import utils.{files, hash_chunk, jwt}
-import model.{
-  create_file_chunk_link,
-  are_file_chunks_uploaded,
-  get_chunk_metadata,
-  chunk_reference_add,
-  create_chunk_metadata
-}
-import dto.FileCompletionBody
+import types.ErrorResponse
+import types.FileId
+import utils.files
 import utils.files.read_file
+import utils.hash_chunk
+import utils.jwt
 
 object chunk_service {
   class InvalidMetadata extends Throwable

@@ -1,7 +1,8 @@
 package utils
-import java.security.MessageDigest
-import types.ChunkId
 import cats.effect.IO
+import types.ChunkId
+
+import java.security.MessageDigest
 
 def hash_chunk(chunkBytes: Array[Byte]): IO[ChunkId] = IO {
   val digest = MessageDigest.getInstance("SHA-256")
