@@ -16,7 +16,7 @@ import types.FolderId
 def get_folder_metadata_by_folder_id(
     id: FolderId
 ): IO[Either[String, FolderMetadata]] =
-  sql"""select folder_id, parent_folder_id, folder_name, created_at, owner_id, status from folder_metadata where folder_id = $id"""
+  sql"""select folder_id, parent_folder_id, folder_name, created_at, owner_id from folder_metadata where folder_id = $id"""
     .query[FolderMetadata]
     .unique
     .transact(transactor)
@@ -29,7 +29,7 @@ def get_folder_metadata_by_folder_id(
 def get_root_folder_by_user_id(
     id: Int
 ): IO[Either[String, FolderMetadata]] =
-  sql"""select folder_id, parent_folder_id, folder_name, created_at, owner_id, status from folder_metadata where user_id = $id and parent_folder_id = $id"""
+  sql"""select folder_id, parent_folder_id, folder_name, created_at, owner_id from folder_metadata where user_id = $id and parent_folder_id = $id"""
     .query[FolderMetadata]
     .unique
     .transact(transactor)
@@ -44,7 +44,7 @@ def create_folder(body: DTOFolderCreationBody): IO[FolderMetadata] =
     .withUniqueGeneratedKeys[Int]("folder_id")
     .transact(transactor)
     .flatMap { folder_id =>
-      sql"""select folder_id, parent_folder_id, folder_name,created_at, owner_id, status from folder_metadata where folder_id=$folder_id"""
+      sql"""select folder_id, parent_folder_id, folder_name,created_at, owner_id from folder_metadata where folder_id=$folder_id"""
         .query[FolderMetadata]
         .unique
         .transact(transactor)
