@@ -119,6 +119,6 @@ val file_routes = HttpRoutes
 
     case DELETE -> Root / "delete" :? FileIdQueryParamMatcher(id) => {
       delete_file(id) *>
-        Ok()
+        Ok("File Deleted")
     }
   }
