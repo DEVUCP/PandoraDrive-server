@@ -61,17 +61,29 @@ object FileRoutes {
     routeRequestImpl[String](req, URI, method)
   }
 
+  object FileIdQueryParamMatcher extends QueryParamDecoderMatcher[String]("file_id")
+  object FolderIdQueryParamMatcher extends QueryParamDecoderMatcher[String]("folder_id")
+
   val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case GET -> Root => 
-      Ok("List of files & their metadata")
+
     
     case req @ GET -> Root / "ping" =>
       routeRequestJson(req, s"http://file:$file_service_port/ping", Method.GET)
     
     case req @ POST -> Root / "upload" / "init" => 
-      routeRequestJson(req, s"http://file:$file_service_port/file/upload", Method.POST)   
+      routeRequestJson(req, s"http://file:$file_service_port/file/upload", Method.POST)
 
-    case DELETE -> Root / "delete" =>
-      Ok(s"placeholder file deleted")
+    case req @ GET -> Root / "download" / "init" :? FileIdQueryParamMatcher(fileId) =>
+      routeRequestJson(req, s"http://file:$file_service_port/file/download?file_id=$fileId", Method.GET)
+    
+    case req @ GET -> Root :? FileIdQueryParamMatcher(fileId) =>
+      routeRequestJson(req, s"http://file:$file_service_port/file?file_id=$fileId", Method.GET)
+
+    case req @ GET -> Root :? FolderIdQueryParamMatcher(folderId) =>
+      routeRequestJson(req, s"http://file:$file_service_port/file/?folder_id=$folderId", Method.GET)
+    
+
+    case req @ DELETE -> Root / "delete" :?  FileIdQueryParamMatcher(fileId) =>
+      routeRequestJson(req, s"http://file:$file_service_port/file/delete?file_id=$fileId", Method.DELETE)
   } 
 }
