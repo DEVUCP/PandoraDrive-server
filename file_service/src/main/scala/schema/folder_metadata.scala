@@ -28,4 +28,5 @@ def create_folder_metadata_table(): IO[Unit] =
       created_at TEXT NOT NULL,
       user_id int NOT NULL,
       FOREIGN KEY(parent_folder_id) REFERENCES folder_metadata(folder_id)
+      UNIQUE (parent_folder_id, folder_name) 
      );""".update.run.void.transact(transactor)

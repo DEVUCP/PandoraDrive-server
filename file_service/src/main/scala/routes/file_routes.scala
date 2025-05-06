@@ -36,6 +36,7 @@ val file_routes = HttpRoutes
     case GET -> Root / "download" :? FileIdQueryParamMatcher(id) =>
       file_service.download_file_metadata(id)
 
+    // TODO: Make sure somehow that the folder is created first, instead of falling into a db error
     case req @ POST -> Root / "upload" =>
       req.as[FileCreationBody].attempt.flatMap {
         case Left(error) =>

@@ -34,7 +34,7 @@ val folder_routes = HttpRoutes.of[IO] {
   case GET -> Root :? UserIdQueryParamMatcher(id) =>
     folder_service.get_user_root_folder(id)
 
-  case req @ POST -> Root =>
+  case req @ POST -> Root / "upload" =>
     req.as[DTOFolderCreationBody].attempt.flatMap {
       case Left(err)   => BadRequest(ErrorResponse("Invalid body").asJson)
       case Right(body) => folder_service.create_folder_metadata(body)

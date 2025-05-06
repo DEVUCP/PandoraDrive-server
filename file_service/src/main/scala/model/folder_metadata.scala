@@ -12,6 +12,7 @@ import dto.DTOFolderCreationBody
 import schema.FileMetadata
 import schema.FolderMetadata
 import types.FolderId
+import java.sql.SQLException
 
 def get_folder_metadata_by_folder_id(
     id: FolderId
@@ -35,21 +36,33 @@ def get_root_folder_by_user_id(
     .transact(transactor)
     .flatMap {
       case Some(folder) => IO.pure(Right(folder))
-      case None =>
-        val created_at = java.time.Instant.now().toString
-        sql"""insert into folder_metadata(folder_name, created_at, user_id) values('root', $created_at, $user_id)""".update.run
-          .transact(transactor)
-          .flatMap { _ => get_root_folder_by_user_id(user_id) }
-          .handleError(err => Left(s"Database Error: ${err.getMessage}"))
+      case None => create_folder(DTOFolderCreationBody("root", None, user_id))
     }
 
-def create_folder(body: DTOFolderCreationBody): IO[FolderMetadata] =
-  sql"""insert into folder_metadata(folder_name, parent_folder_id, user_id, created_at) values(${body.folder_name}, ${body.parent_folder_id}, ${body.user_id})""".update
+def create_folder(
+    body: DTOFolderCreationBody
+): IO[Either[String, FolderMetadata]] =
+  val created_at = java.time.Instant.now().toString
+  sql"""insert into folder_metadata(folder_name, parent_folder_id, user_id, created_at) values(${body.folder_name}, ${body.parent_folder_id}, ${body.user_id}, $created_at)""".update
     .withUniqueGeneratedKeys[Int]("folder_id")
     .transact(transactor)
-    .flatMap { folder_id =>
-      sql"""select folder_id, parent_folder_id, folder_name,created_at, user_id from folder_metadata where folder_id=$folder_id"""
-        .query[FolderMetadata]
-        .unique
-        .transact(transactor)
+    .attempt
+    .flatMap {
+      case Right(folder_id) =>
+        sql"""select folder_id, parent_folder_id, folder_name,created_at, user_id from folder_metadata where folder_id=$folder_id"""
+          .query[FolderMetadata]
+          .unique
+          .transact(transactor)
+          .flatMap(folder => IO.pure(Right(folder)))
+      case Left(e: SQLException)
+          if e.getMessage.contains("UNIQUE constraint failed") =>
+        IO.pure(
+          Left(
+            "Folder with the same name already exists in the target directory."
+          )
+        )
+
+      case Left(e) =>
+        IO.println(s"Unexpected DB error: ${e.getMessage}") *>
+          IO.pure(Left("Unexpected database error"))
     }

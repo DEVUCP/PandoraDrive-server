@@ -38,6 +38,6 @@ def create_file_metadata_table(): IO[Unit] =
       mime_type TEXT NOT NULL,
       user_id int NOT NULL,
       status TEXT NOT NULL CHECK (status in ('Uploading', 'Uploaded', 'Flawed')),
-      FOREIGN KEY(folder_id) REFERENCES folder_metadata(file_id)
+      FOREIGN KEY(folder_id) REFERENCES folder_metadata(folder_id)
       UNIQUE (folder_id, file_name)
      );""".update.run.void.transact(transactor)

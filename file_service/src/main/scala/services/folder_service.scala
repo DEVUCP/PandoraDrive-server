@@ -40,7 +40,16 @@ object folder_service {
     }
 
   def create_folder_metadata(body: DTOFolderCreationBody): IO[Response[IO]] =
-    create_folder(body).flatMap(folder => Ok(folder.asJson))
+    create_folder(body).flatMap {
+      case Right(folder) =>
+        Ok(folder.asJson)
+
+      case Left(errMsg) if errMsg.contains("already exists") =>
+        Conflict(ErrorResponse(errMsg).asJson)
+
+      case Left(errMsg) =>
+        InternalServerError(ErrorResponse(errMsg).asJson)
+    }
 
   def get_user_root_folder(user_id: Int): IO[Response[IO]] =
     get_root_folder_by_user_id(user_id)
