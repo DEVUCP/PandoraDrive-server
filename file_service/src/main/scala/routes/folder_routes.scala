@@ -28,8 +28,11 @@ import services.folder_service
 import types.ErrorResponse
 
 val folder_routes = HttpRoutes.of[IO] {
-  case GET -> Root :? FileIdQueryParamMatcher(id) =>
+  case GET -> Root :? FolderIdQueryParamMatcher(id) =>
     folder_service.get_folder_files_metadata(id)
+
+  case GET -> Root :? UserIdQueryParamMatcher(id) =>
+    folder_service.get_user_root_folder(id)
 
   case req @ POST -> Root =>
     req.as[DTOFolderCreationBody].attempt.flatMap {

@@ -8,24 +8,35 @@ import cats.implicits._
 import db.transactor
 import doobie._
 import doobie.implicits._
+import dto.DTOFolderCreationBody
 import schema.FileMetadata
 import schema.FolderMetadata
 import types.FolderId
-import dto.DTOFolderCreationBody
 
 def get_folder_metadata_by_folder_id(
     id: FolderId
 ): IO[Either[String, FolderMetadata]] =
   sql"""select folder_id, parent_folder_id, folder_name, created_at, owner_id, status from folder_metadata where folder_id = $id"""
     .query[FolderMetadata]
-    .to[List]
+    .unique
     .transact(transactor)
     .attempt
     .map {
-      case Right(Nil)      => Left(f"No folder exists with id=$id")
-      case Right(h :: Nil) => Right(h)
-      case Right(_)        => Left("There cannot be more than one element")
-      case Left(e)         => Left(s"Database error: ${e.getMessage}")
+      case Right(h) => Right(h)
+      case Left(e)  => Left(s"Database error: ${e.getMessage}")
+    }
+
+def get_root_folder_by_user_id(
+    id: Int
+): IO[Either[String, FolderMetadata]] =
+  sql"""select folder_id, parent_folder_id, folder_name, created_at, owner_id, status from folder_metadata where user_id = $id and parent_folder_id = $id"""
+    .query[FolderMetadata]
+    .unique
+    .transact(transactor)
+    .attempt
+    .map {
+      case Right(h) => Right(h)
+      case Left(e)  => Left(s"Database error: ${e.getMessage}")
     }
 
 def create_folder(body: DTOFolderCreationBody): IO[FolderMetadata] =

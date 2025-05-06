@@ -6,9 +6,12 @@ import cats.effect.IOApp
 import cats.effect.*
 import cats.implicits._
 import com.comcast.ip4s.*
+import dto.DTOFolderCreationBody
 import io.circe.generic.auto._
 import io.circe.syntax._
+import model.create_folder
 import model.get_folder_metadata_by_folder_id
+import model.get_root_folder_by_user_id
 import org.http4s.*
 import org.http4s._
 import org.http4s.circe._
@@ -19,8 +22,6 @@ import org.http4s.ember.server._
 import org.http4s.implicits._
 import types.ErrorResponse
 import types.FolderId
-import dto.DTOFolderCreationBody
-import model.create_folder
 
 object folder_service {
   def get_folder_files_metadata(folder_id: FolderId): IO[Response[IO]] =
@@ -39,4 +40,7 @@ object folder_service {
 
   def create_folder_metadata(body: DTOFolderCreationBody): IO[Response[IO]] =
     create_folder(body).flatMap(folder => Ok(folder.asJson))
+
+  def get_user_root_folder(user_id: Int): IO[Response[IO]] =
+    get_root_folder_by_user_id(user_id).flatMap(folder => Ok(folder.asJson))
 }

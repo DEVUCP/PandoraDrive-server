@@ -12,6 +12,7 @@ inThisBuild(
     semanticdbVersion := scalafixSemanticdb.revision
   )
 )
+
 lazy val root = (project in file("."))
   .settings(
     name := "PandoraHomeDrive",
