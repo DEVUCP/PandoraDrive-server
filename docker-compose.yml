@@ -49,7 +49,7 @@ services:
   #   ports:
   #     - "${TEMPLATE_PORT}:${TEMPLATE_PORT}"
 
-  file_service:
+  file:
     build:
       context: ./file_service
       dockerfile: dockerfile
