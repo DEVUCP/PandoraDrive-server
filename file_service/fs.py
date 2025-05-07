@@ -53,7 +53,9 @@ def rm(cmd: str):
         print(f"File name {name} doesn't exist in CWD")
         return
 
-    req = requests.delete(f"{URL}/file/delete?file_id={file_id}")
+    body = {"file_id": file_id, "user_id": USER_ID}
+    req = requests.delete(f"{URL}/file/delete", json=body)
+
     print(f"File Deletion Request Status Code: {req.status_code}")
     restart()
 

@@ -5,7 +5,14 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{ChunkMetadataMultipartUpload, DTOFileDownloadBody, FileCompletionBody, FileCreationBody, UploadBody}
+import dto.{
+  ChunkMetadataMultipartUpload,
+  DTOFileDownloadBody,
+  FileCompletionBody,
+  FileCreationBody,
+  UploadBody,
+  FileDeletionBody
+}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.*
@@ -45,6 +52,10 @@ val file_routes = HttpRoutes
         case Right(body) => file_service.upload_complete(body)
       }
 
-    case DELETE -> Root / "delete" :? FileIdQueryParamMatcher(id) =>
-      file_service.delete_file(id)
+    case req @ DELETE -> Root / "delete" =>
+      req.as[FileDeletionBody].attempt.flatMap {
+        case Left(_) => BadRequest(ErrorResponse("Invalid Body").asJson)
+        case Right(body) =>
+          file_service.delete_file(body)
+      }
   }

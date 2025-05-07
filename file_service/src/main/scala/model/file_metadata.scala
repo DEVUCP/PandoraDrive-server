@@ -143,7 +143,18 @@ def get_files_by_folder_id(folder_id: FolderId): IO[
       ) >>
         IO.pure(Nil)
     }
-
-def delete_file_metadata(file_id: FileId): IO[Unit] =
-  sql"""delete from file_metadata where file_id = $file_id""".update.run.void
+def check_file_user(file_id: FileId, user_id: Int): IO[Boolean] =
+  sql"""select 1 from file_metadata where file_id=$file_id and user_id=$user_id"""
+    .query[Int]
+    .option
     .transact(transactor)
+    .map(_.isDefined)
+def delete_file_metadata(file_id: FileId, user_id: Int): IO[Boolean] =
+  check_file_user(file_id, user_id).flatMap {
+    case false => IO.pure(false)
+    case true =>
+      sql"""delete from file_metadata where file_id = $file_id""".update.run.void
+        .transact(transactor)
+        .flatMap(_ => IO.pure(true))
+        .handleErrorWith(err => IO.println(err) *> IO.pure(false))
+  }

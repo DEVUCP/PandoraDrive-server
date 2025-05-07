@@ -4,10 +4,28 @@ import cats.data.EitherT
 
 import cats.effect.IO
 
-import dto.{DTOFileDownloadBody, FileCompletionBody, FileCreationBody, UploadBody}
+import dto.{
+  DTOFileDownloadBody,
+  FileCompletionBody,
+  FileCreationBody,
+  UploadBody,
+  FileDeletionBody
+}
 import io.circe.generic.auto._
 import io.circe.syntax._
-import model.{are_file_chunks_uploaded, create_file_metadata, delete_file_metadata, get_file_chunks_metadata, get_file_id_by_file_name_and_folder, get_file_metadata_by_file_id, get_files_by_folder_id, remove_file_chunks, set_file_status_uploaded, update_file_metadata, validate_folder_user}
+import model.{
+  are_file_chunks_uploaded,
+  create_file_metadata,
+  delete_file_metadata,
+  get_file_chunks_metadata,
+  get_file_id_by_file_name_and_folder,
+  get_file_metadata_by_file_id,
+  get_files_by_folder_id,
+  remove_file_chunks,
+  set_file_status_uploaded,
+  update_file_metadata,
+  validate_folder_user
+}
 import org.http4s.Response
 import org.http4s.circe._
 import org.http4s.dsl.io.*
@@ -106,8 +124,12 @@ object file_service {
       set_file_status_uploaded
     )(body.token)
 
-  def delete_file(file_id: FileId): IO[Response[IO]] =
-    remove_file_chunks(file_id)
-      .flatMap(_ => delete_file_metadata(file_id))
-      .flatMap(_ => Ok())
+  def delete_file(body: FileDeletionBody): IO[Response[IO]] =
+    remove_file_chunks(body.file_id, body.user_id)
+      .flatMap(_ => delete_file_metadata(body.file_id, body.user_id))
+      .flatMap {
+        case true => Ok()
+        case false =>
+          NotFound(ErrorResponse("File Not found or already deleted").asJson)
+      }
 }
