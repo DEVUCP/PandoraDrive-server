@@ -1,14 +1,16 @@
 package schema
 
-import doobie._
-import doobie.implicits._
 import cats._
 import cats.data._
-import cats.effect.IO
 import cats.implicits._
+
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import doobie.util.transactor.Transactor
+
 import db.transactor
+import doobie._
+import doobie.implicits._
+import doobie.util.transactor.Transactor
 import types.FolderId
 
 case class FolderMetadata(
@@ -16,10 +18,7 @@ case class FolderMetadata(
     parent_folder_id: Option[Int],
     folder_name: String,
     created_at: String,
-    modified_at: String,
-    uploaded_at: String,
-    owner_id: Int,
-    status: String
+    user_id: Int
 )
 
 def create_folder_metadata_table(): IO[Unit] =
@@ -29,9 +28,7 @@ def create_folder_metadata_table(): IO[Unit] =
       parent_folder_id int NULL,
       folder_name TEXT NOT NULL,
       created_at TEXT NOT NULL,
-      modified_at TEXT NOT NULL,
-      uploaded_at TEXT NOT NULL,
-      owner_id int NOT NULL,
-      status TEXT NOT NULL CHECK (status in ('Uploading', 'Uploaded', 'Flawed')),
+      user_id int NOT NULL,
       FOREIGN KEY(parent_folder_id) REFERENCES folder_metadata(folder_id)
+      UNIQUE (parent_folder_id, folder_name) 
      );""".update.run.void.transact(transactor)

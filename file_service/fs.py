@@ -1,20 +1,32 @@
 import os
+from typing import Dict
 
 import requests
 
-cur_folder_id = 1
+cur_folder: Dict = {}
 cwd_files = []
 cwd_valid = False
 
+USER_ID = 1
 URL = "http://localhost:55555"
 
 
+def validate_folder():
+    global cur_folder
+    if cur_folder:
+        return
+    req = requests.get(f"{URL}/folder?user_id={USER_ID}")
+    cur_folder = req.json()
+    print("Current folder has been initiated")
+
+
 def validate_cwd():
+    validate_folder()
     global cwd_valid
     if cwd_valid:
         return
     cwd_files.clear()
-    req = requests.get(f"{URL}/file?folder_id={cur_folder_id}")
+    req = requests.get(f"{URL}/file?folder_id={cur_folder['folder_id']}")
     for file in req.json():
         cwd_files.append(file)
     cwd_valid = True
@@ -41,7 +53,9 @@ def rm(cmd: str):
         print(f"File name {name} doesn't exist in CWD")
         return
 
-    req = requests.delete(f"{URL}/file/delete?file_id={file_id}")
+    body = {"file_id": file_id, "user_id": USER_ID}
+    req = requests.delete(f"{URL}/file/delete", json=body)
+
     print(f"File Deletion Request Status Code: {req.status_code}")
     restart()
 
@@ -99,6 +113,11 @@ def download(cmd: str):
                 print(f"Chunk #{chunk_sequence} didn't download: {response.text}")
 
 
+def pwd():
+    validate_folder()
+    print(cur_folder["folder_name"])
+
+
 if __name__ == "__main__":
     running = True
     while running:
@@ -115,6 +134,8 @@ if __name__ == "__main__":
                 rm(cmd)
             elif cmd.startswith("dl"):
                 download(cmd)
+            elif cmd.startswith("pwd"):
+                pwd()
             else:
                 print(f"Invaild cmd: {cmd}")
         except:

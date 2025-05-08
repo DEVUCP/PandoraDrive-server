@@ -1,44 +1,27 @@
 package services
-import cats.effect.unsafe.implicits.global
 import cats.implicits._
-import org.http4s.implicits._
-import cats.effect.*
-import org.http4s.*
+
+import cats.effect.unsafe.implicits.global
+import cats.effect.{ExitCode, IO, IOApp, _}
+
+import com.comcast.ip4s.*
+import dto.{ChunkDownloadBody, ChunkMetadataMultipartUpload, FileCompletionBody, UploadBody}
+import io.circe.generic.auto._
+import io.circe.parser._
+import io.circe.syntax._
+import model.{are_file_chunks_uploaded, chunk_exists, chunk_reference_add, create_chunk_metadata, create_file_chunk_link, get_chunk_metadata}
+import org.http4s.circe.CirceEntityCodec._
+import org.http4s.circe._
 import org.http4s.dsl.io.*
 import org.http4s.ember.server.*
-import org.http4s.multipart.*
-import com.comcast.ip4s.*
-
 import org.http4s.headers.`Content-Type`
-import org.http4s.MediaType
-import cats.effect.{IO, IOApp, ExitCode}
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.http4s.circe._
-import io.circe.parser._
-import io.circe.generic.auto._
-import org.http4s.multipart.Multipart
-import org.http4s.circe.CirceEntityCodec._
+import org.http4s.implicits._
+import org.http4s.multipart.{Multipart, _}
 import org.http4s.server.Router
-
-import types.ErrorResponse
-import dto.ChunkMetadataMultipartUpload
-import utils.jwt
-import types.FileId
-import dto.{UploadBody, ChunkDownloadBody}
-import types.ChunkId
-import model.chunk_exists
-import utils.{files, hash_chunk, jwt}
-import model.{
-  create_file_chunk_link,
-  are_file_chunks_uploaded,
-  file_complete_status,
-  get_chunk_metadata,
-  chunk_reference_add,
-  create_chunk_metadata
-}
-import dto.FileCompletionBody
+import org.http4s.{MediaType, _}
+import types.{ChunkId, ErrorResponse, FileId}
 import utils.files.read_file
+import utils.{files, hash_chunk, jwt}
 
 object chunk_service {
   class InvalidMetadata extends Throwable
@@ -119,27 +102,6 @@ object chunk_service {
     },
     create_file_chunk_link
   )
-
-  def upload_complete_curried(
-      is_file_chunks_uploaded: FileId => IO[Boolean],
-      file_complete_status: FileId => IO[Unit]
-  )(token: String): IO[Response[IO]] =
-    jwt.decode_token[UploadBody](token) match {
-      case Left(err) => BadRequest(ErrorResponse("Invalid body"))
-      case Right(UploadBody(file_id)) =>
-        is_file_chunks_uploaded(file_id).flatMap {
-          case false => NotFound(ErrorResponse("Chunks are not uploaded"))
-          case true =>
-            file_complete_status(file_id) *>
-              Ok()
-        }
-    }
-
-  def upload_complete(body: FileCompletionBody) =
-    upload_complete_curried(
-      are_file_chunks_uploaded,
-      file_complete_status
-    )(body.token)
 
   def download_chunk(
       chunk_id: ChunkId

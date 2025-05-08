@@ -1,22 +1,17 @@
 package backend
 
-import cats.effect.*
-import org.http4s.*
-import org.http4s.dsl.io.*
-import org.http4s.ember.server.*
-import com.comcast.ip4s.*
+import cats.effect.{ExitCode, IO, IOApp, _}
 
-import cats.effect.{IO, IOApp, ExitCode}
+import com.comcast.ip4s.*
+import io.circe.generic.auto._
+import io.circe.syntax._
 import org.http4s._
+import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.ember.server._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.http4s.circe._
 import org.http4s.server.Router
-
-import routes.{folder_routes, file_routes, chunk_routes}
-import schema.{initialize_schemas}
+import routes.{chunk_routes, file_routes, folder_routes}
+import schema.initialize_schemas
 import utils.config
 
 object server extends IOApp:
