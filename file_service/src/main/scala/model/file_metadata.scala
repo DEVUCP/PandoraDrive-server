@@ -133,7 +133,7 @@ def get_files_by_folder_id(folder_id: FolderId): IO[
 ] =
   implicit val bigIntMeta: Meta[BigInt] = Meta[Long].timap(BigInt(_))(_.toLong)
 
-  sql"""select file_id, folder_id, file_name, created_at, modified_at, uploaded_at, size_bytes, mime_type, user_id, status from file_metadata where folder_id = $folder_id"""
+  sql"""select file_id, folder_id, file_name, size_bytes, mime_type, user_id, status, uploaded_at, created_at, modified_at from file_metadata where folder_id = $folder_id"""
     .query[FileMetadata]
     .to[List]
     .transact(transactor)
