@@ -8,14 +8,14 @@ from typing import Dict
 
 import requests
 
-URL = "http://localhost:55555"
-FOLDER_ID = -1
+URL = "http://localhost:55551/api/v1"
+FOLDER_ID = 1
 USER_ID = 1
 
 
 def calc_folder_id():
     global FOLDER_ID
-    req = requests.get(f"{URL}/folder?user_id={USER_ID}")
+    req = requests.get(f"{URL}/files/folder?user_id={USER_ID}")
     FOLDER_ID = req.json()["folder_id"]
     print(f"FolderId is {FOLDER_ID}")
 
@@ -110,7 +110,7 @@ def gather_stat(file_path: str):
 
 def init_upload(body: dict) -> Dict:
     """Initialize file upload and return token"""
-    req = requests.post(f"{URL}/file/upload", json=body)
+    req = requests.post(f"{URL}/files/upload/init", json=body)
     json_response = req.json()
     print(json_response)
     assert req.status_code == 200, "The initialization failed"

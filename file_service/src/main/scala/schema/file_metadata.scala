@@ -1,14 +1,16 @@
 package schema
 
-import doobie._
-import doobie.implicits._
 import cats._
 import cats.data._
-import cats.effect.IO
 import cats.implicits._
+
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import doobie.util.transactor.Transactor
+
 import db.transactor
+import doobie._
+import doobie.implicits._
+import doobie.util.transactor.Transactor
 import io.circe.Encoder
 import types.FileId
 
@@ -18,7 +20,7 @@ case class FileMetadata(
     file_name: String,
     size_bytes: Int,
     mime_type: String,
-    owner_id: Int,
+    user_id: Int,
     status: String,
     uploaded_at: String,
     created_at: String,
@@ -36,7 +38,8 @@ def create_file_metadata_table(): IO[Unit] =
       uploaded_at TEXT NOT NULL,
       size_bytes bigint NOT NULL,
       mime_type TEXT NOT NULL,
-      owner_id int NOT NULL,
-      status TEXT NOT NULL CHECK (status in ('UploadStart', 'Uploaded', 'Flawed')),
-      FOREIGN KEY(folder_id) REFERENCES folder_metadata(file_id)
+      user_id int NOT NULL,
+      status TEXT NOT NULL CHECK (status in ('Uploading', 'Uploaded', 'Flawed')),
+      FOREIGN KEY(folder_id) REFERENCES folder_metadata(folder_id)
+      UNIQUE (folder_id, file_name)
      );""".update.run.void.transact(transactor)

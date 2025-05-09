@@ -7,7 +7,7 @@ case class FileCreationBody(
     folder_id: Int,
     size_bytes: BigInt,
     mime_type: String,
-    owner_id: Int,
+    user_id: Int,
     created_at: String,
     modified_at: String
 )

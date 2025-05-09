@@ -2,13 +2,15 @@ package model
 
 import cats._
 import cats.data._
-import cats.effect.IO
 import cats.implicits._
+
+import cats.effect.IO
+
+import db.transactor
 import doobie._
 import doobie.implicits._
-
-import types.{FileId, ChunkId}
-import db.transactor
+import schema.FileChunkRelation
+import types.{ChunkId, FileId}
 import utils.config
 
 def create_file_chunk_link(
@@ -17,10 +19,14 @@ def create_file_chunk_link(
     chunk_seq: Int
 ): IO[Unit] =
   sql"""
-  insert into file_chunk(file_id, chunk_id, chunk_seq) values($file_id, $chunk_id, $chunk_seq)
-  """.update.run.void.transact(transactor)
+  insert or replace into file_chunk(file_id, chunk_id, chunk_seq) values($file_id, $chunk_id, $chunk_seq)
+  """.update.run.void
+    .transact(transactor)
+    .handleErrorWith { e =>
+      IO(println(s"Error inserting file chunk link: $e")).void
+    }
 
-def is_file_chunks_uploaded(file_id: FileId): IO[Boolean] =
+def are_file_chunks_uploaded(file_id: FileId): IO[Boolean] =
   for {
     // Get the actual chunk count and validity of the chunk sequence
     chunkData <- sql"""
