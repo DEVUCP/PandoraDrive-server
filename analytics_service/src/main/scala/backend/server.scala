@@ -7,8 +7,8 @@ import org.http4s.ember.server.*
 import com.comcast.ip4s.*
 
 object server extends IOApp:
+  object FolderIdQueryParameter extends QueryParamDecoderMatcher[String]("folder_id")
 
-  //simple HTTP service/app
   private val helloWorldService = HttpRoutes.of[IO] {
     case GET -> Root / "hello" / name =>
       Ok(s"Hello, $name!")
@@ -22,8 +22,7 @@ object server extends IOApp:
     case Some(port) => Port.fromString(port).getOrElse(port"55552")
     case None => port"55552"
   }
-  
-  // server run func
+
   def run(args: List[String]): IO[ExitCode] =
     EmberServerBuilder
       .default[IO]
