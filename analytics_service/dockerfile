@@ -6,6 +6,8 @@ WORKDIR /app
 COPY build.sbt ./
 COPY project/ project/
 
+RUN sbt update
+
 COPY src/ src/
 
 RUN sbt compile
