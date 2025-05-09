@@ -7,7 +7,7 @@ import org.http4s.ember.server.*
 import org.http4s.implicits._
 import org.http4s.server.Router
 import com.comcast.ip4s.*
-import backend.routes.{AdminRoutes, FileRoutes, ChatbotRoutes}
+import backend.routes.{AdminRoutes, FileRoutes, ChatbotRoutes, AuthRoutes}
 import schema.{initialize_schema}
 import utils.config
 
@@ -24,6 +24,7 @@ object server extends IOApp:
     "/api/v1/admin" -> AdminRoutes.routes,
     "/api/v1/files" -> FileRoutes.routes,
     "/api/v1/chatbot" -> ChatbotRoutes.routes,
+    "/api/v1/auth" -> AuthRoutes.routes,
 
     "/" -> HttpRoutes.of[IO] {
       case GET -> Root / "hello" / name =>
