@@ -12,23 +12,23 @@ import io.circe.Json
 import java.time.LocalDate
 
 case class FileMetadata(
-  file_id: Int,
-  folder_id: Int,
-  file_name: String,
-  size_bytes: Int,
-  mime_type: String,
-  user_id: Int,
-  status: String,
-  uploaded_at: String,
-  created_at: String,
-  modified_at: String
+    file_id: Int,
+    folder_id: Int,
+    file_name: String,
+    size_bytes: Int,
+    mime_type: String,
+    user_id: Int,
+    status: String,
+    uploaded_at: String,
+    created_at: String,
+    modified_at: String
 )
 
 implicit val fileDecoder: EntityDecoder[IO, List[FileMetadata]] = jsonOf
 implicit val analyticsEncoder: EntityEncoder[IO, Json] = jsonEncoderOf
 
-def routeRequestImpl[T](uriString: String, method: Method)(
-    implicit decoder: EntityDecoder[IO, T]
+def routeRequestImpl[T](uriString: String, method: Method)(implicit
+    decoder: EntityDecoder[IO, T]
 ): IO[T] = {
   EmberClientBuilder.default[IO].build.use { client =>
     Uri.fromString(uriString) match {
@@ -37,7 +37,9 @@ def routeRequestImpl[T](uriString: String, method: Method)(
         client.expect[T](req)
 
       case Left(parseFailure) =>
-        IO.raiseError(new RuntimeException(s"Invalid URI: ${parseFailure.details}"))
+        IO.raiseError(
+          new RuntimeException(s"Invalid URI: ${parseFailure.details}")
+        )
     }
   }
 }
@@ -52,29 +54,29 @@ private def getCreatedDates(files: List[FileMetadata]): List[String] =
 private def isPhoto(mime: String): Boolean = mime.startsWith("image/")
 private def isVideo(mime: String): Boolean = mime.startsWith("video/")
 
-object server extends IOApp:
-  object FolderIdQueryParameter extends QueryParamDecoderMatcher[String]("folder_id")
+def getAnalytics(folderId: String): IO[Response[IO]] = {
+  val fileServiceUrl = s"http://localhost:55555/file?folder_id=$folderId"
 
-  private val helloWorldService = HttpRoutes.of[IO] {
-    case GET -> Root / "hello" / name =>
-      Ok(s"Hello, $name!")
-    case GET -> Root / "hello" =>
-      Ok("Hello, World!")
-    case GET -> Root / "ping" =>
-      Ok("pong")
-  }.orNotFound
+  routeRequestImpl[List[FileMetadata]](fileServiceUrl, Method.GET)
+    .flatMap { files =>
+      val numFiles = files.size
+      val sortedBySize = files.sortBy(_.size_bytes)
+      val smallest = sortedBySize.headOption
+      val largest = sortedBySize.lastOption
+      val totalSize = files.map(_.size_bytes).sum
+      val spaceLeft = maxDriveSpace - totalSize
 
-  var port = sys.env.get("ANALYTICS_SERVICE_PORT") match {
-    case Some(port) => Port.fromString(port).getOrElse(port"55552")
-    case None => port"55552"
-  }
-
-  def run(args: List[String]): IO[ExitCode] =
-    EmberServerBuilder
-      .default[IO]
-      .withHost(ipv4"0.0.0.0")
-      .withPort(port)
-      .withHttpApp(helloWorldService)
-      .build
-      .use(_ => IO.never)
-      .as(ExitCode.Success)
+      Ok(
+        Json.obj(
+          "The largest file in your drive" -> Json.fromString(
+            largest.map(_.file_name).getOrElse("N/A")
+          ),
+          "The smallest file in your drive" -> Json.fromString(
+            smallest.map(_.file_name).getOrElse("N/A")
+          ),
+          "The total size of your uploaded media is" -> Json.fromInt(totalSize),
+          "The space you have left in your drive" -> Json.fromInt(spaceLeft)
+        )
+      )
+    }
+}
