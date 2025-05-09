@@ -80,3 +80,32 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
       )
     }
 }
+
+object server extends IOApp:
+  object FolderIdQueryParameter extends QueryParamDecoderMatcher[String]("folder_id")
+
+  private val helloWorldService = HttpRoutes.of[IO] {
+    case GET -> Root / "hello" / name =>
+      Ok(s"Hello, $name!")
+    case GET -> Root / "hello" =>
+      Ok("Hello, World!")
+    case GET -> Root / "ping" =>
+      Ok("pong")
+    case GET -> Root / "analytics" :? FolderIdQueryParameter(id) =>
+      getAnalytics(id)
+  }.orNotFound
+
+  var port = sys.env.get("ANALYTICS_SERVICE_PORT") match {
+    case Some(port) => Port.fromString(port).getOrElse(port"55552")
+    case None => port"55552"
+  }
+
+  def run(args: List[String]): IO[ExitCode] =
+    EmberServerBuilder
+      .default[IO]
+      .withHost(ipv4"0.0.0.0")
+      .withPort(port)
+      .withHttpApp(helloWorldService)
+      .build
+      .use(_ => IO.never)
+      .as(ExitCode.Success)
