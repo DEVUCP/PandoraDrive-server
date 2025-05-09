@@ -5,6 +5,25 @@ import org.http4s.*
 import org.http4s.dsl.io.*
 import org.http4s.ember.server.*
 import com.comcast.ip4s.*
+import io.circe.generic.auto.*
+import org.http4s.circe.*
+import io.circe.Json
+
+case class FileMetadata(
+  file_id: Int,
+  folder_id: Int,
+  file_name: String,
+  size_bytes: Int,
+  mime_type: String,
+  user_id: Int,
+  status: String,
+  uploaded_at: String,
+  created_at: String,
+  modified_at: String
+)
+
+implicit val fileDecoder: EntityDecoder[IO, List[FileMetadata]] = jsonOf
+implicit val analyticsEncoder: EntityEncoder[IO, Json] = jsonEncoderOf
 
 object server extends IOApp:
   object FolderIdQueryParameter extends QueryParamDecoderMatcher[String]("folder_id")
