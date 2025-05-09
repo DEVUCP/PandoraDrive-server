@@ -64,3 +64,4 @@ build/
 ### VS Code ###
 .vscode/
 
+/api_gateway_service/db.db
