@@ -9,6 +9,7 @@ import com.comcast.ip4s.*
 import io.circe.generic.auto.*
 import org.http4s.circe.*
 import io.circe.Json
+import java.time.LocalDate
 
 case class FileMetadata(
   file_id: Int,
@@ -40,6 +41,16 @@ def routeRequestImpl[T](uriString: String, method: Method)(
     }
   }
 }
+
+// Constants
+val maxDriveSpace: Int = 536870912 // 512 MB
+
+// Helpers
+private def getCreatedDates(files: List[FileMetadata]): List[String] =
+  files.map(_.created_at).filter(_.nonEmpty).sorted
+
+private def isPhoto(mime: String): Boolean = mime.startsWith("image/")
+private def isVideo(mime: String): Boolean = mime.startsWith("video/")
 
 object server extends IOApp:
   object FolderIdQueryParameter extends QueryParamDecoderMatcher[String]("folder_id")
