@@ -1,25 +1,18 @@
 package services
 
 import cats.data.EitherT
-
 import cats.effect.IO
 
-import dto.{DTOFileDownloadBody, FileCompletionBody, FileCreationBody, FileDeletionBody, UploadBody}
+import dto.{
+  DTOFileDownloadBody,
+  FileCompletionBody,
+  FileCreationBody,
+  FileDeletionBody,
+  UploadBody,
+  FileRenameBody
+}
 import io.circe.generic.auto._
 import io.circe.syntax._
-import model.{
-  are_file_chunks_uploaded,
-  create_file_metadata,
-  delete_file_metadata,
-  get_file_chunks_metadata,
-  get_file_id_by_file_name_and_folder,
-  get_file_metadata_by_file_id,
-  get_files_by_folder_id,
-  remove_file_chunks,
-  set_file_status_uploaded,
-  update_file_metadata,
-  validate_folder_user
-}
 import org.http4s.Response
 import org.http4s.circe._
 import org.http4s.dsl.io.*
@@ -29,12 +22,12 @@ import utils.{config, jwt}
 object file_service {
   def folder_files(folder_id: FolderId): IO[Response[IO]] =
     for {
-      list <- get_files_by_folder_id(folder_id)
+      list <- model.get_files_by_folder_id(folder_id)
       resp <- Ok(list.asJson)
     } yield resp
 
   def file_by_id(file_id: FileId): IO[Response[IO]] =
-    EitherT(get_file_metadata_by_file_id(file_id)).value
+    EitherT(model.get_file_metadata_by_file_id(file_id)).value
       .flatMap {
         case Right(file) =>
           Ok(file.asJson)
@@ -46,7 +39,7 @@ object file_service {
       }
 
   def download_file_metadata(file_id: FileId) =
-    get_file_chunks_metadata(file_id).flatMap {
+    model.get_file_chunks_metadata(file_id).flatMap {
       case Left(errorMsg) =>
         IO.println(errorMsg) *>
           InternalServerError(ErrorResponse("Internal Server Error").asJson)
@@ -60,14 +53,15 @@ object file_service {
     }
 
   def upload_file_metadata(body: FileCreationBody): IO[Response[IO]] =
-    validate_folder_user(body.user_id, body.folder_id).flatMap {
+    model.validate_folder_user(body.user_id, body.folder_id).flatMap {
       case false => BadRequest(ErrorResponse("Invalid Folder data").asJson)
       case true =>
-        get_file_id_by_file_name_and_folder(body.file_name, body.folder_id)
+        model
+          .get_file_id_by_file_name_and_folder(body.file_name, body.folder_id)
           .flatMap { data =>
             val db_request = data match {
-              case Some(id) => update_file_metadata(body, id)
-              case None     => create_file_metadata(body)
+              case Some(id) => model.update_file_metadata(body, id)
+              case None     => model.create_file_metadata(body)
             }
 
             db_request.flatMap {
@@ -107,23 +101,35 @@ object file_service {
           case false =>
             NotFound(ErrorResponse("Chunks are not uploaded").asJson)
           case true =>
-            set_file_status_uploaded(file_id) *>
+            file_complete_status(file_id) *>
               Ok()
         }
     }
 
   def upload_complete(body: FileCompletionBody) =
     upload_complete_curried(
-      are_file_chunks_uploaded,
-      set_file_status_uploaded
+      model.are_file_chunks_uploaded,
+      model.set_file_status_uploaded
     )(body.token)
 
   def delete_file(body: FileDeletionBody): IO[Response[IO]] =
-    remove_file_chunks(body.file_id, body.user_id)
-      .flatMap(_ => delete_file_metadata(body.file_id, body.user_id))
+    model
+      .remove_file_chunks(body.file_id, body.user_id)
+      .flatMap(_ => model.delete_file_metadata(body.file_id, body.user_id))
       .flatMap {
         case true => Ok()
         case false =>
           NotFound(ErrorResponse("File Not found or already deleted").asJson)
       }
+
+  def rename_file(body: FileRenameBody): IO[Response[IO]] =
+    model.rename_file(body.file_id, body.user_id, body.new_file_name).flatMap {
+      case false =>
+        NotFound(
+          ErrorResponse(
+            "file_id is not set correctly. Check for file existence"
+          ).asJson
+        )
+      case true => Ok()
+    }
 }
