@@ -9,7 +9,8 @@ import dto.{
   FileCreationBody,
   FileDeletionBody,
   UploadBody,
-  FileRenameBody
+  FileRenameBody,
+  FileMoveBody
 }
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -132,4 +133,17 @@ object file_service {
         )
       case true => Ok()
     }
+
+  def move_file(body: FileMoveBody): IO[Response[IO]] =
+    model
+      .move_file(body.file_id, body.user_id, body.new_parent_folder_id)
+      .flatMap {
+        case false =>
+          NotFound(
+            ErrorResponse(
+              "file_id is not set correctly. Check for file existence"
+            ).asJson
+          )
+        case true => Ok()
+      }
 }

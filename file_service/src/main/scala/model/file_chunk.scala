@@ -64,8 +64,3 @@ def are_file_chunks_uploaded(file_id: FileId): IO[Boolean] =
         IO.pure(false) // Return false if no size_bytes found for the file
     }
   } yield result
-
-def rename_file(file_id: FileId, new_file_name: String): IO[Unit] =
-  sql"""update file_metadata set file_name = $new_file_name where file_id = $file_id""".update.run.void
-    .transact(transactor)
-    .handleErrorWith(err => IO.println(err))
