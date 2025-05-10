@@ -110,6 +110,9 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
           "The number of folders you have created in your drive" -> Json.fromInt(
             files.map(_.folder_id).distinct.length
           ),
+          "The folder that has the biggest number of uploaded media" -> Json.fromString(
+            files.groupBy(_.folder_id).maxByOption(_._2.length).map(_._1).getOrElse("N/A")
+          )
         )
       )
   }
