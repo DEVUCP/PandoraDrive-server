@@ -12,9 +12,10 @@ import cats.effect.unsafe.implicits.global
 import db.transactor
 import doobie._
 import doobie.implicits._
-import dto.DTOFolderCreationBody
+import dto.FolderCreationBody
 import schema.{FileMetadata, FolderMetadata}
 import types.FolderId
+import services.folder_service.get_folder_files_metadata
 
 def get_folder_metadata_by_folder_id(
     id: FolderId
@@ -38,11 +39,11 @@ def get_root_folder_by_user_id(
     .transact(transactor)
     .flatMap {
       case Some(folder) => IO.pure(Right(folder))
-      case None => create_folder(DTOFolderCreationBody("root", None, user_id))
+      case None => create_folder(FolderCreationBody("root", None, user_id))
     }
 
 def create_folder(
-    body: DTOFolderCreationBody
+    body: FolderCreationBody
 ): IO[Either[String, FolderMetadata]] =
   val created_at = java.time.Instant.now().toString
   sql"""insert into folder_metadata(folder_name, parent_folder_id, user_id, created_at) values(${body.folder_name}, ${body.parent_folder_id}, ${body.user_id}, $created_at)""".update
@@ -75,3 +76,26 @@ def validate_folder_user(folder_id: FolderId, user_id: Int): IO[Boolean] =
     .option
     .map(_.isDefined)
     .transact(transactor)
+
+def get_folder_by_parent_id(
+    parent_folder_id: FolderId
+): IO[List[FolderMetadata]] =
+  sql"""select folder_id, parent_folder_id, folder_name,created_at, user_id from folder_metadata where parent_folder_id=$parent_folder_id"""
+    .query[FolderMetadata]
+    .to[List]
+    .attempt
+    .transact(transactor)
+    .flatMap {
+      case Right(folders) => IO.pure(folders)
+      case Left(err)      => IO.println(err) *> IO.pure(List())
+    }
+
+def delete_folder_by_id(folder_id: FolderId, user_id: Int): IO[Boolean] =
+  validate_folder_user(folder_id, user_id).flatMap {
+    case false => IO.pure(false)
+    case true =>
+      sql"""delete from folder_metadata where folder_id=$folder_id and user_id=$user_id""".update.run.void
+        .transact(transactor)
+        .flatMap { _ => IO.pure(true) }
+        .handleErrorWith(err => IO.println(err) *> IO.pure(false))
+  }

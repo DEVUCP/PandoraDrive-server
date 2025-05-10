@@ -55,7 +55,7 @@ object file_service {
     get_file_chunks_metadata(file_id).flatMap {
       case Left(errorMsg) =>
         IO.println(errorMsg) *>
-          InternalServerError("Internal Server Error")
+          InternalServerError(ErrorResponse("Internal Server Error").asJson)
       case Right(lst) =>
         Ok(
           DTOFileDownloadBody(

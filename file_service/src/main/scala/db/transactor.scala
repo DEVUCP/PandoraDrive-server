@@ -15,6 +15,6 @@ import utils.config
 val transactor: Transactor[IO] = Transactor.fromDriverManager[IO](
   driver = "org.sqlite.JDBC",
   // url = config.DB_URL,
-  url = s"${config.DB_URL}?foreign_keys=true",
+  url = config.DB_URL,
   logHandler = None
 )

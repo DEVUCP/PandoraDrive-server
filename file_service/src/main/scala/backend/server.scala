@@ -11,8 +11,8 @@ import org.http4s.dsl.io._
 import org.http4s.ember.server._
 import org.http4s.server.Router
 import routes.{chunk_routes, file_routes, folder_routes}
-import schema.initialize_schemas
 import utils.config
+import db.database_setup
 
 object server extends IOApp:
 
@@ -28,7 +28,7 @@ object server extends IOApp:
   def run(args: List[String]): IO[ExitCode] =
     val servicePort =
       Port.fromString(config.SERVICE_PORT).getOrElse(port"55555")
-    initialize_schemas() *>
+    db.database_setup() *>
       EmberServerBuilder
         .default[IO]
         .withHost(ipv4"0.0.0.0")

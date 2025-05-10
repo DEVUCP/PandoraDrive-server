@@ -6,10 +6,16 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.DTOFolderCreationBody
+import dto.{FolderCreationBody, FolderDeletionBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
-import model.{create_folder, get_folder_metadata_by_folder_id, get_root_folder_by_user_id}
+import model.{
+  create_folder,
+  get_folder_metadata_by_folder_id,
+  get_root_folder_by_user_id,
+  delete_folder_by_id,
+  get_folder_by_parent_id
+}
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
@@ -32,7 +38,7 @@ object folder_service {
         }
     }
 
-  def create_folder_metadata(body: DTOFolderCreationBody): IO[Response[IO]] =
+  def create_folder_metadata(body: FolderCreationBody): IO[Response[IO]] =
     create_folder(body).flatMap {
       case Right(folder) =>
         Ok(folder.asJson)
@@ -49,8 +55,28 @@ object folder_service {
       .flatMap {
         case Right(folder) => Ok(folder.asJson)
         case Left(err) =>
-          IO.println(err) *> BadRequest(
+          IO.println(err) *> InternalServerError(
             ErrorResponse("Internal Server Error").asJson
           )
       }
+
+  def get_children_folders(folder_id: FolderId): IO[Response[IO]] =
+    get_folder_by_parent_id(folder_id).flatMap { folders => Ok(folders.asJson) }
+
+  def delete_folder(body: FolderDeletionBody): IO[Response[IO]] =
+    delete_folder_by_id(body.folder_id, body.user_id)
+      .flatMap {
+        case true => Ok()
+        case false =>
+          NotFound(
+            ErrorResponse(
+              "Failed to delete folder. Maybe folder doesn't exist or already deleted"
+            ).asJson
+          )
+      }
+      .handleErrorWith(err =>
+        IO.println(err) *> InternalServerError(
+          ErrorResponse("Internal Server Error").asJson
+        )
+      )
 }
