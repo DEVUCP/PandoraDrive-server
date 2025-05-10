@@ -70,7 +70,7 @@ def create_folder(
           IO.pure(Left("Unexpected database error"))
     }
 
-def validate_folder_user(folder_id: FolderId, user_id: Int): IO[Boolean] =
+def folder_exists(folder_id: FolderId, user_id: Int): IO[Boolean] =
   sql"""select 1 from folder_metadata where user_id = $user_id and folder_id = $folder_id"""
     .query[Int]
     .option
@@ -91,7 +91,7 @@ def get_folder_by_parent_id(
     }
 
 def delete_folder_by_id(folder_id: FolderId, user_id: Int): IO[Boolean] =
-  validate_folder_user(folder_id, user_id).flatMap {
+  folder_exists(folder_id, user_id).flatMap {
     case false => IO.pure(false)
     case true =>
       sql"""delete from folder_metadata where folder_id=$folder_id and user_id=$user_id""".update.run.void

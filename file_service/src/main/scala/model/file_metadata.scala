@@ -182,8 +182,12 @@ def move_file(
   file_exists(file_id, user_id).flatMap {
     case false => IO.pure(false)
     case true =>
-      sql"""update file_metadata set parent_folder_id = $new_parent_folder where file_id = $file_id""".update.run
-        .transact(transactor)
-        .as(true)
-        .handleErrorWith(err => IO.println(err) *> IO.pure(false))
+      folder_exists(new_parent_folder, user_id).flatMap {
+        case false => IO.pure(false)
+        case true =>
+          sql"""update file_metadata set parent_folder_id = $new_parent_folder where file_id = $file_id""".update.run
+            .transact(transactor)
+            .as(true)
+            .handleErrorWith(err => IO.println(err) *> IO.pure(false))
+      }
   }
