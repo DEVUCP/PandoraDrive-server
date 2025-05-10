@@ -25,6 +25,7 @@ import org.http4s.server.Router
 import services.file_service
 import types.{ErrorResponse, FileUploadMetadataInserted}
 import dto.FileRenameBody
+import dto.FileMoveBody
 
 val file_routes = HttpRoutes
   .of[IO] {
@@ -43,6 +44,11 @@ val file_routes = HttpRoutes
         case Right(body) => file_service.rename_file(body)
       }
 
+    case req @ POST -> Root / "move" =>
+      req.as[FileMoveBody].attempt.flatMap {
+        case Left(_)     => BadRequest(ErrorResponse("Invalid Body").asJson)
+        case Right(body) => file_service.move_file(body)
+      }
     // TODO: Make sure somehow that the folder is created first, instead of falling into a db error
     case req @ POST -> Root / "upload" =>
       req.as[FileCreationBody].attempt.flatMap {
