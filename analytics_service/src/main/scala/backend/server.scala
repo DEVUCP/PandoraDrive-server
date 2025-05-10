@@ -77,6 +77,9 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
           "The total size of your uploaded media is" -> Json.fromInt(totalSize),
           "The space you have left in your drive" -> Json.fromInt(spaceLeft),
           "The number of files you uploaded to your drive" -> Json.fromInt(numFiles),
+          "Your most recently uploaded photo/video was taken at" -> Json.fromString(
+            files.flatMap(f => f.taken_at).sorted.lastOption.getOrElse("N/A")
+          ),
         )
       )
   }
