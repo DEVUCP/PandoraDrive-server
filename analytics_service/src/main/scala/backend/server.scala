@@ -80,6 +80,9 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
           "Your most recently uploaded photo/video was taken at" -> Json.fromString(
             files.flatMap(f => f.taken_at).sorted.lastOption.getOrElse("N/A")
           ),
+          "Your last photo/video uploaded was uploaded at" -> Json.fromString(
+            files.flatMap(f => f.created_at).sorted.lastOption.getOrElse("N/A")
+          ),
         )
       )
   }
