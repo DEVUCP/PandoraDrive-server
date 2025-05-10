@@ -101,6 +101,9 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
           "The length of your shortest uploaded video" -> Json.fromInt(
             files.filter(f => isVideo(f.mime_type)).flatMap(_.duration_seconds).minOption.getOrElse(0)
           ),
+          "The number of videos you have in your drive" -> Json.fromInt(
+            files.count(f => isVideo(f.mime_type))
+          ),
         )
       )
   }
