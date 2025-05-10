@@ -4,13 +4,7 @@ import cats.data.EitherT
 
 import cats.effect.IO
 
-import dto.{
-  DTOFileDownloadBody,
-  FileCompletionBody,
-  FileCreationBody,
-  UploadBody,
-  FileDeletionBody
-}
+import dto.{DTOFileDownloadBody, FileCompletionBody, FileCreationBody, FileDeletionBody, UploadBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import model.{
@@ -55,7 +49,7 @@ object file_service {
     get_file_chunks_metadata(file_id).flatMap {
       case Left(errorMsg) =>
         IO.println(errorMsg) *>
-          InternalServerError("Internal Server Error")
+          InternalServerError(ErrorResponse("Internal Server Error").asJson)
       case Right(lst) =>
         Ok(
           DTOFileDownloadBody(

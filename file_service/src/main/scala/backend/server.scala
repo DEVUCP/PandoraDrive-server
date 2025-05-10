@@ -1,20 +1,20 @@
 package backend
 
-import cats.effect.{ExitCode, IO, IOApp, _}
+import cats.syntax.all._
 
-import com.comcast.ip4s.*
-import io.circe.generic.auto._
-import io.circe.syntax._
+import cats.effect.{ExitCode, IO, IOApp, Resource}
+
+import com.comcast.ip4s._
+import db.database_setup
+import jobs.ChunkCleanup
 import org.http4s._
-import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.ember.server._
 import org.http4s.server.Router
 import routes.{chunk_routes, file_routes, folder_routes}
-import schema.initialize_schemas
 import utils.config
 
-object server extends IOApp:
+object server extends IOApp {
 
   private val router = Router(
     "/folder" -> folder_routes,
@@ -25,15 +25,32 @@ object server extends IOApp:
     }
   ).orNotFound
 
-  def run(args: List[String]): IO[ExitCode] =
+  def run(args: List[String]): IO[ExitCode] = {
     val servicePort =
       Port.fromString(config.SERVICE_PORT).getOrElse(port"55555")
-    initialize_schemas() *>
+
+    val serverResource: Resource[IO, Unit] =
       EmberServerBuilder
         .default[IO]
         .withHost(ipv4"0.0.0.0")
         .withPort(servicePort)
         .withHttpApp(router)
         .build
-        .use(_ => IO.never)
-        .as(ExitCode.Success)
+        .as(())
+
+    // Explicitly specifying IO for the cleanup job
+    val cleanupJobResource: Resource[IO, Unit] =
+      Resource.make(ChunkCleanup.runJob().start)(_.cancel).void
+
+    val resources: Resource[IO, Unit] = for {
+      _ <- Resource.eval(
+        IO.println("Starting database setup...") *> db.database_setup()
+      )
+      _ <- cleanupJobResource
+      _ <- serverResource
+    } yield ()
+
+    // Use the resources and handle lifecycle properly
+    resources.use(_ => IO.never).as(ExitCode.Success)
+  }
+}
