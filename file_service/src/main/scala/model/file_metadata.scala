@@ -173,3 +173,17 @@ def rename_file(
         .as(true)
         .handleErrorWith(err => IO.println(err) *> IO.pure(false))
   }
+
+def move_file(
+    file_id: FileId,
+    user_id: Int,
+    new_parent_folder: FolderId
+): IO[Boolean] =
+  file_exists(file_id, user_id).flatMap {
+    case false => IO.pure(false)
+    case true =>
+      sql"""update file_metadata set parent_folder_id = $new_parent_folder where file_id = $file_id""".update.run
+        .transact(transactor)
+        .as(true)
+        .handleErrorWith(err => IO.println(err) *> IO.pure(false))
+  }
