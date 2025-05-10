@@ -86,6 +86,9 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
           "The number of photos/videos you uploaded this day" -> Json.fromInt(
             files.count(f => f.created_at.exists(_.startsWith(currentDate("day"))) && (isPhoto(f.mime_type) || isVideo(f.mime_type)))
           ),
+          "The number of photos/videos you uploaded this week" -> Json.fromInt(
+            files.count(f => f.created_at.exists(_.startsWith(currentDate("week"))) && (isPhoto(f.mime_type) || isVideo(f.mime_type)))
+          ),
         )
       )
   }
