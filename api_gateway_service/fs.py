@@ -1,28 +1,38 @@
 import os
+from typing import Dict
 
 import requests
 
-cur_folder_id = 1
+cur_folder: Dict = {}
 cwd_files = []
 cwd_valid = False
 
-URL = "http://localhost:55551/api/v1"
+USER_ID = 1
+URL = "http://localhost:55551/api/v1/files"
+
+
+def validate_folder():
+    global cur_folder
+    if cur_folder:
+        return
+    req = requests.get(f"{URL}/folder?user_id={USER_ID}")
+    cur_folder = req.json()
+    print("Current folder has been initiated")
 
 
 def validate_cwd():
+    validate_folder()
     global cwd_valid
     if cwd_valid:
         return
     cwd_files.clear()
-    req = requests.get(f"{URL}/files?folder_id={cur_folder_id}").json()
-    print(req)
-    for file in req:
+    req = requests.get(f"http://localhost:55551/api/v1/files?folder_id={cur_folder['folder_id']}")
+    for file in req.json():
         cwd_files.append(file)
     cwd_valid = True
 
 
 def ls():
-    print("validating cwd")
     validate_cwd()
     for cwd_file in cwd_files:
         print(cwd_file["file_name"])
@@ -43,7 +53,9 @@ def rm(cmd: str):
         print(f"File name {name} doesn't exist in CWD")
         return
 
-    req = requests.delete(f"{URL}/files/delete?file_id={file_id}")
+    body = {"file_id": file_id, "user_id": USER_ID}
+    req = requests.delete(f"http://localhost:55551/api/v1/files/delete", json=body)
+
     print(f"File Deletion Request Status Code: {req.status_code}")
     restart()
 
@@ -75,7 +87,7 @@ def download(cmd: str):
         return
 
     # Get File Data
-    req = requests.get(f"{URL}/files/download/init?file_id={file_id}")
+    req = requests.get(f"http://localhost:55551/api/v1/files/download/init?file_id={file_id}")
     if not req.status_code == 200:
         print(f"Something is wrong: Status Code= {req.status_code}")
         print(req.json())
@@ -101,6 +113,11 @@ def download(cmd: str):
                 print(f"Chunk #{chunk_sequence} didn't download: {response.text}")
 
 
+def pwd():
+    validate_folder()
+    print(cur_folder["folder_name"])
+
+
 if __name__ == "__main__":
     running = True
     while running:
@@ -117,7 +134,9 @@ if __name__ == "__main__":
                 rm(cmd)
             elif cmd.startswith("dl"):
                 download(cmd)
+            elif cmd.startswith("pwd"):
+                pwd()
             else:
                 print(f"Invaild cmd: {cmd}")
-        except Exception as e:
-            print("Something wrong happened: ",e)
+        except:
+            print("Something wrong happened")
