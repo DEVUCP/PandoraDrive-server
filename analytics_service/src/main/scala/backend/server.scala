@@ -104,6 +104,9 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
           "The number of videos you have in your drive" -> Json.fromInt(
             files.count(f => isVideo(f.mime_type))
           ),
+          "The number of photos you have in your drive" -> Json.fromInt(
+            files.count(f => isPhoto(f.mime_type))
+          ),
         )
       )
   }
