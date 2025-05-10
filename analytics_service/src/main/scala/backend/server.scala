@@ -12,6 +12,10 @@ import io.circe.Json
 import io.circe.syntax.*  // Added for Json handling
 import java.time.LocalDate
 
+def parseDate(str: String): Option[LocalDate] =
+  try Some(LocalDate.parse(str.take(10)))
+  catch { case _: Throwable => None }
+
 case class FileMetadata(
     file_id: Int,
     folder_id: Int,
