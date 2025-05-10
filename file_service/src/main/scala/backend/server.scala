@@ -12,7 +12,8 @@ import db.database_setup
 import jobs.ChunkCleanup
 import cats.syntax.all._
 
-object server extends IOApp:
+object server extends IOApp {
+
   private val router = Router(
     "/folder" -> folder_routes,
     "/chunk" -> chunk_routes,
@@ -22,7 +23,7 @@ object server extends IOApp:
     }
   ).orNotFound
 
-  def run(args: List[String]): IO[ExitCode] =
+  def run(args: List[String]): IO[ExitCode] = {
     val servicePort =
       Port.fromString(config.SERVICE_PORT).getOrElse(port"55555")
 
@@ -35,17 +36,19 @@ object server extends IOApp:
         .build
         .as(())
 
+    // Explicitly specifying IO for the cleanup job
     val cleanupJobResource: Resource[IO, Unit] =
-      Resource.make(ChunkCleanup.runJob(6.hour).start)(_.cancel).void
+      Resource.make(ChunkCleanup.runJob().start)(_.cancel).void
 
-    val resources = for
+    val resources: Resource[IO, Unit] = for {
       _ <- Resource.eval(
         IO.println("Starting database setup...") *> db.database_setup()
       )
       _ <- cleanupJobResource
       _ <- serverResource
-    yield ()
+    } yield ()
 
-    resources.useForever.as(ExitCode.Success)
-
-    resources.useForever.as(ExitCode.Success)
+    // Use the resources and handle lifecycle properly
+    resources.use(_ => IO.never).as(ExitCode.Success)
+  }
+}

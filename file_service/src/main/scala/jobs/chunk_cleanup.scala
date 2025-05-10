@@ -15,7 +15,7 @@ import utils.files
 import fs2.Stream
 
 object ChunkCleanup {
-  def runJob(cleanup_interval: Interval): IO[Unit] =
+  def runJob(): IO[Unit] =
     def job(): IO[Unit] =
       IO.println("Job has started") *>
         sql"""select chunk_id from chunk_metadata where ref_count <= 0"""
@@ -43,5 +43,5 @@ object ChunkCleanup {
     def scheduleCleanup(interval: FiniteDuration): Stream[IO, Unit] =
       Stream.awakeEvery[IO](interval) >> Stream.eval(job())
 
-    scheduleCleanup(cleanup_interval).compile.drain
+    scheduleCleanup(6.hour).compile.drain
 }
