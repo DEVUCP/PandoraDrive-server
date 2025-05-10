@@ -152,6 +152,12 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
       )
       Ok(responseJson)
     }
+    .handleErrorWith { e =>
+      println(s"Error during analytics generation: ${e.getMessage}")
+      InternalServerError(
+        Json.obj("error" -> Json.fromString("Failed to generate analytics"))
+      )
+    }
 }
 
 object server extends IOApp:
