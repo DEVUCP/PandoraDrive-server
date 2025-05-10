@@ -75,10 +75,11 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
             smallest.map(_.file_name).getOrElse("N/A")
           ),
           "The total size of your uploaded media is" -> Json.fromInt(totalSize),
-          "The space you have left in your drive" -> Json.fromInt(spaceLeft)
+          "The space you have left in your drive" -> Json.fromInt(spaceLeft),
+          "The number of files you uploaded to your drive" -> Json.fromInt(numFiles),
         )
       )
-    }
+  }
 }
 
 object server extends IOApp:
