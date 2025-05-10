@@ -26,4 +26,17 @@ object files {
       Left(s"Failed to read the file: $path")
     }
   }
+  def remove_file(path: String): IO[Either[String, Unit]] = {
+    val fullPath = Path("storage") / path
+    FS2Files[IO]
+      .delete(fullPath)
+      .attempt
+      .map {
+        case Right(_) => Right(())
+        case Left(e: IOException) =>
+          Left(s"Failed to delete file: $path. Error: ${e.getMessage}")
+        case Left(e) =>
+          Left(s"Unexpected error deleting file: $path. Error: ${e.getMessage}")
+      }
+  }
 }
