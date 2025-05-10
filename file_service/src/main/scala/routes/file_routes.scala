@@ -5,7 +5,14 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{ChunkMetadataMultipartUpload, DTOFileDownloadBody, FileCompletionBody, FileCreationBody, FileDeletionBody, UploadBody}
+import dto.{
+  ChunkMetadataMultipartUpload,
+  DTOFileDownloadBody,
+  FileCompletionBody,
+  FileCreationBody,
+  FileDeletionBody,
+  UploadBody
+}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.*
@@ -17,6 +24,8 @@ import org.http4s.multipart.{Multipart, _}
 import org.http4s.server.Router
 import services.file_service
 import types.{ErrorResponse, FileUploadMetadataInserted}
+import dto.FileRenameBody
+import dto.FileMoveBody
 
 val file_routes = HttpRoutes
   .of[IO] {
@@ -29,6 +38,17 @@ val file_routes = HttpRoutes
     case GET -> Root / "download" :? FileIdQueryParamMatcher(id) =>
       file_service.download_file_metadata(id)
 
+    case req @ POST -> Root / "rename" =>
+      req.as[FileRenameBody].attempt.flatMap {
+        case Left(_)     => BadRequest(ErrorResponse("Invalid Body").asJson)
+        case Right(body) => file_service.rename_file(body)
+      }
+
+    case req @ POST -> Root / "move" =>
+      req.as[FileMoveBody].attempt.flatMap {
+        case Left(_)     => BadRequest(ErrorResponse("Invalid Body").asJson)
+        case Right(body) => file_service.move_file(body)
+      }
     // TODO: Make sure somehow that the folder is created first, instead of falling into a db error
     case req @ POST -> Root / "upload" =>
       req.as[FileCreationBody].attempt.flatMap {

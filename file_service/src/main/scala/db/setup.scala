@@ -24,7 +24,7 @@ def database_setup(): IO[Unit] = {
     _ <- sql"""create table if not exists folder_metadata (
       folder_id INTEGER PRIMARY KEY AUTOINCREMENT,
       parent_folder_id int NULL,
-      folder_name TEXT NOT NULL,
+      folder_name TEXT NOT NULL check (length(folder_name) > 0),
       created_at TEXT NOT NULL,
       user_id int NOT NULL,
       FOREIGN KEY(parent_folder_id) REFERENCES folder_metadata(folder_id) on delete cascade
@@ -44,7 +44,7 @@ def database_setup(): IO[Unit] = {
     _ <- sql"""create table if not exists file_metadata (
       file_id INTEGER PRIMARY KEY AUTOINCREMENT,
       folder_id int NOT NULL,
-      file_name TEXT NOT NULL,
+      file_name TEXT NOT NULL check (length(file_name) > 0),
       created_at TEXT NOT NULL,
       modified_at TEXT NOT NULL,
       uploaded_at TEXT NOT NULL,
