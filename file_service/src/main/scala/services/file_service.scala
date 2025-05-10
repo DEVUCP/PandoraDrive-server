@@ -54,7 +54,7 @@ object file_service {
     }
 
   def upload_file_metadata(body: FileCreationBody): IO[Response[IO]] =
-    model.validate_folder_user(body.user_id, body.folder_id).flatMap {
+    model.folder_exists(body.user_id, body.folder_id).flatMap {
       case false => BadRequest(ErrorResponse("Invalid Folder data").asJson)
       case true =>
         model
