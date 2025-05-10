@@ -98,6 +98,9 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
           "The length of your longest uploaded video" -> Json.fromInt(
             files.filter(f => isVideo(f.mime_type)).flatMap(_.duration_seconds).maxOption.getOrElse(0)
           ),
+          "The length of your shortest uploaded video" -> Json.fromInt(
+            files.filter(f => isVideo(f.mime_type)).flatMap(_.duration_seconds).minOption.getOrElse(0)
+          ),
         )
       )
   }
