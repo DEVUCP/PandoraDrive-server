@@ -17,7 +17,9 @@ def validate_file_creation_body(
 ): IO[(Boolean, String)] = IO {
   val dateRegex = """^\d{4}-\d{2}-\d{2}$""".r
 
-  if (!dateRegex.matches(body.created_at))
+  if (body.file_name.trim.isEmpty)
+    (false, "file_name cannot be empty")
+  else if (!dateRegex.matches(body.created_at))
     (false, "created_at has invalid format (expected YYYY-MM-DD)")
   else if (!dateRegex.matches(body.modified_at))
     (false, "modified_at has invalid format (expected YYYY-MM-DD)")
