@@ -184,7 +184,10 @@ def rmdir(cmd: str):
 if __name__ == "__main__":
     running = True
     while running:
-        cmd = input("> ").strip().lower()
+        raw = input("> ").strip()
+        if len(raw) == 0:
+            continue
+        cmd = raw.lower()
 
         if cmd in ["quit", "exit", "q"]:
             running = False
@@ -193,14 +196,14 @@ if __name__ == "__main__":
         elif cmd == "restart":
             restart()
         elif cmd.startswith("rmdir"):
-            rmdir(cmd)
+            rmdir(raw)
         elif cmd.startswith("rm"):
-            rm(cmd)
+            rm(raw)
         elif cmd.startswith("dl"):
-            download(cmd)
+            download(raw)
         elif cmd.startswith("pwd"):
             pwd()
         elif cmd.startswith("mkdir"):
-            mkdir(cmd)
+            mkdir(raw)
         else:
-            print(f"Invaild cmd: {cmd}")
+            print(f"Invaild cmd: {raw}")
