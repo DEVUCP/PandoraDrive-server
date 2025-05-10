@@ -9,6 +9,7 @@ import com.comcast.ip4s.*
 import io.circe.generic.auto.*
 import org.http4s.circe.*
 import io.circe.Json
+import io.circe.syntax.*  // Added for Json handling
 import java.time.LocalDate
 
 case class FileMetadata(
