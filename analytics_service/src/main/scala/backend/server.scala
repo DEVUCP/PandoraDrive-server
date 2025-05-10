@@ -95,6 +95,9 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
           "The number of photos/videos you uploaded this year" -> Json.fromInt(
             files.count(f => f.created_at.exists(_.startsWith(currentDate("year"))) && (isPhoto(f.mime_type) || isVideo(f.mime_type)))
           ),
+          "The length of your longest uploaded video" -> Json.fromInt(
+            files.filter(f => isVideo(f.mime_type)).flatMap(_.duration_seconds).maxOption.getOrElse(0)
+          ),
         )
       )
   }
