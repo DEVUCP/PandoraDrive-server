@@ -1,18 +1,21 @@
 package jobs
 
-import cats.effect._
-import cats.implicits._
-import cats.effect.std.Queue
-import doobie._
-import doobie.implicits._
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
-import types.ChunkId
-import services.chunk_service
-import db.transactor
+
 import cats.Id
-import utils.files
+import cats.implicits._
+
+import cats.effect._
+import cats.effect.std.Queue
+
+import db.transactor
+import doobie._
+import doobie.implicits._
 import fs2.Stream
+import services.chunk_service
+import types.ChunkId
+import utils.files
 
 object ChunkCleanup {
   def runJob(): IO[Unit] =

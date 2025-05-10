@@ -5,14 +5,7 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{
-  ChunkMetadataMultipartUpload,
-  DTOFileDownloadBody,
-  FileCompletionBody,
-  FileCreationBody,
-  UploadBody,
-  FileDeletionBody
-}
+import dto.{ChunkMetadataMultipartUpload, DTOFileDownloadBody, FileCompletionBody, FileCreationBody, FileDeletionBody, UploadBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.*

@@ -14,8 +14,8 @@ import doobie._
 import doobie.implicits._
 import dto.FolderCreationBody
 import schema.{FileMetadata, FolderMetadata}
-import types.FolderId
 import services.folder_service.get_folder_files_metadata
+import types.FolderId
 
 def get_folder_metadata_by_folder_id(
     id: FolderId

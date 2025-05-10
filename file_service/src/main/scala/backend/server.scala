@@ -1,16 +1,18 @@
 package backend
 
+import cats.syntax.all._
+
 import cats.effect.{ExitCode, IO, IOApp, Resource}
+
 import com.comcast.ip4s._
+import db.database_setup
+import jobs.ChunkCleanup
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.ember.server._
 import org.http4s.server.Router
 import routes.{chunk_routes, file_routes, folder_routes}
 import utils.config
-import db.database_setup
-import jobs.ChunkCleanup
-import cats.syntax.all._
 
 object server extends IOApp {
 

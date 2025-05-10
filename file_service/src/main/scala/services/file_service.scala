@@ -4,13 +4,7 @@ import cats.data.EitherT
 
 import cats.effect.IO
 
-import dto.{
-  DTOFileDownloadBody,
-  FileCompletionBody,
-  FileCreationBody,
-  UploadBody,
-  FileDeletionBody
-}
+import dto.{DTOFileDownloadBody, FileCompletionBody, FileCreationBody, FileDeletionBody, UploadBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import model.{

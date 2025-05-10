@@ -4,9 +4,8 @@ import cats._
 import cats.data._
 import cats.implicits._
 
-import cats.effect._
-import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import cats.effect.{IO, _}
 
 import db.transactor
 import doobie._

@@ -9,13 +9,7 @@ import com.comcast.ip4s.*
 import dto.{FolderCreationBody, FolderDeletionBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
-import model.{
-  create_folder,
-  get_folder_metadata_by_folder_id,
-  get_root_folder_by_user_id,
-  delete_folder_by_id,
-  get_folder_by_parent_id
-}
+import model.{create_folder, delete_folder_by_id, get_folder_by_parent_id, get_folder_metadata_by_folder_id, get_root_folder_by_user_id}
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._

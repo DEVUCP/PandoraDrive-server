@@ -1,7 +1,6 @@
 package schema
 
-import types.FileId
-import types.ChunkId
+import types.{ChunkId, FileId}
 
 case class FileChunkRelation(
     chunk_id: ChunkId,
