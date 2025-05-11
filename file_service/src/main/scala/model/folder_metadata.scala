@@ -113,3 +113,35 @@ def rename_folder(
         .flatMap { _ => IO.pure(true) }
         .handleErrorWith(err => IO.println(err) *> IO.pure(false))
   }
+
+def move_folder(
+    folder_id: FolderId,
+    user_id: Int,
+    new_folder_id: FolderId
+): IO[Boolean] = {
+  // check if the new folder is a descendant of the current folder
+  val checkDescendantQuery =
+    sql"""
+      WITH RECURSIVE descendants AS (
+        SELECT id FROM folder_metadata WHERE parent_folder_id = $folder_id
+        UNION
+        SELECT f.id FROM folder_metadata f
+        INNER JOIN descendants d ON f.parent_folder_id = d.id
+      )
+      SELECT 1 FROM descendants WHERE id = $new_folder_id LIMIT 1
+    """.query[Int].option.transact(transactor)
+
+  checkDescendantQuery.flatMap {
+    case Some(_) =>
+      IO.pure(false)
+    case None =>
+      sql"UPDATE folder_metadata SET parent_folder_id = $new_folder_id WHERE id = $folder_id AND user_id = $user_id".update.run
+        .transact(transactor)
+        .flatMap {
+          case 0 =>
+            IO.pure(false)
+          case _ =>
+            IO.pure(true)
+        }
+  }
+}

@@ -5,7 +5,7 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{FolderCreationBody, FolderDeletionBody, FolderRenameBody}
+import dto.{FolderCreationBody, FolderDeletionBody, FolderMoveBody, FolderRenameBody}
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
@@ -40,6 +40,12 @@ val folder_routes = HttpRoutes.of[IO] {
     req.as[FolderRenameBody].attempt.flatMap {
       case Left(err)   => BadRequest(ErrorResponse("Invalid body").asJson)
       case Right(body) => folder_service.rename_folder(body)
+    }
+
+  case req @ POST -> Root / "move" =>
+    req.as[FolderMoveBody].attempt.flatMap {
+      case Left(err)   => BadRequest(ErrorResponse("Invalid body").asJson)
+      case Right(body) => folder_service.move_folder(body)
     }
 
   case req @ DELETE -> Root / "delete" =>

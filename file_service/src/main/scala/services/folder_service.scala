@@ -6,7 +6,7 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{FolderCreationBody, FolderDeletionBody, FolderRenameBody}
+import dto.{FolderCreationBody, FolderDeletionBody, FolderMoveBody, FolderRenameBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s._
@@ -80,6 +80,24 @@ object folder_service {
   def rename_folder(body: FolderRenameBody): IO[Response[IO]] =
     model
       .rename_folder(body.folder_id, body.user_id, body.new_folder_name)
+      .flatMap {
+        case true => Ok()
+        case false =>
+          NotFound(
+            ErrorResponse(
+              "Failed to delete folder. Maybe folder doesn't exist or already deleted"
+            ).asJson
+          )
+      }
+      .handleErrorWith(err =>
+        IO.println(err) *> InternalServerError(
+          ErrorResponse("Internal Server Error").asJson
+        )
+      )
+
+  def move_folder(body: FolderMoveBody): IO[Response[IO]] =
+    model
+      .move_folder(body.folder_id, body.user_id, body.new_folder_id)
       .flatMap {
         case true => Ok()
         case false =>
