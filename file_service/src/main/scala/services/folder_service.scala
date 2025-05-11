@@ -9,7 +9,13 @@ import com.comcast.ip4s.*
 import dto.{FolderCreationBody, FolderDeletionBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
-import model.{create_folder, delete_folder_by_id, get_folder_by_parent_id, get_folder_metadata_by_folder_id, get_root_folder_by_user_id}
+import model.{
+  create_folder,
+  delete_folder_by_id,
+  get_folder_by_parent_id,
+  get_folder_metadata_by_folder_id,
+  get_root_folder_by_user_id
+}
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
@@ -60,7 +66,7 @@ object folder_service {
   def delete_folder(body: FolderDeletionBody): IO[Response[IO]] =
     delete_folder_by_id(body.folder_id, body.user_id)
       .flatMap {
-        case true => Ok()
+        case true => NoContent()
         case false =>
           NotFound(
             ErrorResponse(
