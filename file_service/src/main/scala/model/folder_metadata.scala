@@ -99,3 +99,17 @@ def delete_folder_by_id(folder_id: FolderId, user_id: Int): IO[Boolean] =
         .flatMap { _ => IO.pure(true) }
         .handleErrorWith(err => IO.println(err) *> IO.pure(false))
   }
+
+def rename_folder(
+    folder_id: FolderId,
+    user_id: Int,
+    new_folder_name: String
+): IO[Boolean] =
+  folder_exists(folder_id, user_id).flatMap {
+    case false => IO.pure(false)
+    case true =>
+      sql"""update folder_metadata set folder_name=$new_folder_name where folder_id=$folder_id""".update.run.void
+        .transact(transactor)
+        .flatMap { _ => IO.pure(true) }
+        .handleErrorWith(err => IO.println(err) *> IO.pure(false))
+  }
