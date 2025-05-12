@@ -45,8 +45,7 @@ def get_root_folder_by_user_id(
 def create_folder(
     body: FolderCreationBody
 ): IO[Either[String, FolderMetadata]] =
-  val created_at = java.time.Instant.now().toString
-  sql"""insert into folder_metadata(folder_name, parent_folder_id, user_id, created_at) values(${body.folder_name}, ${body.parent_folder_id}, ${body.user_id}, $created_at)""".update
+  sql"""insert into folder_metadata(folder_name, parent_folder_id, user_id) values(${body.folder_name}, ${body.parent_folder_id}, ${body.user_id})""".update
     .withUniqueGeneratedKeys[Int]("folder_id")
     .transact(transactor)
     .attempt

@@ -5,7 +5,7 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{ChunkMetadataMultipartUpload, DTOFileDownloadBody, FileCompletionBody, FileCreationBody, FileDeletionBody, FileMoveBody, FileRenameBody, UploadBody}
+import dto.{ChunkMetadataMultipartUpload, DTOFileDownloadBody, FileCompletionBody, FileUpsertionBody, FileDeletionBody, FileMoveBody, FileRenameBody, UploadBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.*
@@ -42,7 +42,7 @@ val file_routes = HttpRoutes
       }
     // TODO: Make sure somehow that the folder is created first, instead of falling into a db error
     case req @ POST -> Root / "upload" =>
-      req.as[FileCreationBody].attempt.flatMap {
+      req.as[FileUpsertionBody].attempt.flatMap {
         case Left(error) =>
           BadRequest(ErrorResponse(s"Invalid body: ${error.getMessage}").asJson)
 
