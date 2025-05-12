@@ -12,7 +12,7 @@ import io.circe.Encoder
 import db.transactor
 
 case class User(
-    userId: String,
+    userId: Int,
     username: String,
     password: String
 )
@@ -20,7 +20,7 @@ case class User(
 object User {
 
   case class AuthUser(
-     id: String,
+     id: Int,
      username: String
   )
 
@@ -40,14 +40,14 @@ object User {
           IO.pure(None)
         }
 
-    def get_user_by_id(userId: String): IO[Option[User]] = 
+    def get_user_by_id(userId: Int): IO[Option[User]] = 
         sql"""
         select user_id, username, password from users where user_id = $userId
         """.query[User].option.transact(transactor).handleErrorWith { error =>
           IO.pure(None)
         }
 
-    def remove_user(userId: String): IO[Unit] =
+    def remove_user(userId: Int): IO[Unit] =
         sql"""
         delete from users where user_id = $userId
         """.update.run.void.transact(transactor).handleErrorWith { error =>

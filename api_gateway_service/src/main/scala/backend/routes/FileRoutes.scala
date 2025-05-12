@@ -15,7 +15,7 @@ import io.circe.Json
 import io.circe.generic.auto._
 import org.http4s.implicits._
 import utils.config
-import utils.routing.routeRequestJson
+import utils.routing.{routeRequestJson, addUserIdToReq}
 
 import org.http4s.AuthedRoutes
 import model.User.AuthUser
@@ -30,30 +30,47 @@ object FileRoutes {
   object FolderIdQueryParamMatcher extends QueryParamDecoderMatcher[String]("folder_id")
   object UserIddQueryParamMatcher extends QueryParamDecoderMatcher[String]("user_id")
 
+
+
+  // case class
   val routesWithAuth: AuthedRoutes[AuthUser, IO] = AuthedRoutes.of {
 
-    case req @ GET -> Root / "ping" as _ =>
-      routeRequestJson(req.req, s"http://file:$file_service_port/ping", Method.GET)
+    case req @ GET -> Root / "ping" as user =>
+      addUserIdToReq(req.req, user.id).flatMap {
+        req => routeRequestJson(req, s"http://file:$file_service_port/ping", Method.GET)
+      }
     
-    case req @ POST -> Root / "upload" / "init" as _ =>
-      routeRequestJson(req.req, s"http://file:$file_service_port/file/upload", Method.POST)
+  
+    case req @ POST -> Root / "upload" / "init" as user =>
+      addUserIdToReq(req.req, user.id).flatMap {
+        req => routeRequestJson(req, s"http://file:$file_service_port/file/upload/init", Method.POST)
+      }
 
-    case req @ GET -> Root / "download" / "init" :? FileIdQueryParamMatcher(fileId) as _ =>
-      routeRequestJson(req.req, s"http://file:$file_service_port/file/download?file_id=$fileId", Method.GET)
+    case req @ GET -> Root / "download" / "init" :? FileIdQueryParamMatcher(fileId) as user =>
+      addUserIdToReq(req.req, user.id).flatMap {
+        req => routeRequestJson(req, s"http://file:$file_service_port/file/download?file_id=$fileId", Method.GET)
+      }
     
-    case req @ GET -> Root :? FileIdQueryParamMatcher(fileId) as _ =>
-      routeRequestJson(req.req, s"http://file:$file_service_port/file?file_id=$fileId", Method.GET)
+    case req @ GET -> Root :? FileIdQueryParamMatcher(fileId) as user =>
+      addUserIdToReq(req.req, user.id).flatMap {
+        req => routeRequestJson(req, s"http://file:$file_service_port/file?file_id=$fileId", Method.GET)
+      }
 
-    case req @ GET -> Root :? FolderIdQueryParamMatcher(folderId) as _ =>
-      routeRequestJson(req.req, s"http://file:$file_service_port/file/?folder_id=$folderId", Method.GET)
+    case req @ GET -> Root :? FolderIdQueryParamMatcher(folderId) as user =>
+      addUserIdToReq(req.req, user.id).flatMap {
+        req => routeRequestJson(req, s"http://file:$file_service_port/file/?folder_id=$folderId", Method.GET)
+      }
 
-    case req @ DELETE -> Root / "delete" as _ =>
-      routeRequestJson(req.req, s"http://file:$file_service_port/file/delete", Method.DELETE)
+    case req @ DELETE -> Root / "delete" as user =>
+      addUserIdToReq(req.req, user.id).flatMap {
+        req => routeRequestJson(req, s"http://file:$file_service_port/file/delete", Method.DELETE)
+      }
 
-    case req @ GET -> Root / "folder" :? UserIddQueryParamMatcher(userId) as _ =>
-      routeRequestJson(req.req, s"http://file:$file_service_port/folder?user_id=$userId", Method.GET)
-    
-  }
+    case req @ GET -> Root / "folder" :? UserIddQueryParamMatcher(userId) as user =>
+      addUserIdToReq(req.req, user.id).flatMap {
+        req => routeRequestJson(req, s"http://file:$file_service_port/folder?user_id=$userId", Method.GET)
+      }
+      }
 
   val routes = AuthMiddleware(routesWithAuth)
 }

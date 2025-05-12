@@ -15,9 +15,20 @@ import io.circe.Json
 import io.circe.generic.auto._
 import org.http4s.implicits._
 import utils.config
+import io.circe.syntax.EncoderOps
 
 
 object routing {
+
+def addUserIdToReq(original_req: Request[IO] ,user_id: Int): IO[Request[IO]] = 
+    original_req.as[Json].flatMap { json =>
+      val enhanced = json.asObject match {
+        case Some(obj) => obj.add("user_id", Json.fromInt(user_id))
+    }
+
+      val newReq = original_req.withEntity(enhanced.asJson)  // Convert JsonObject back to Json
+      IO.pure(newReq)
+    }
 
 def routeRequestImpl[T](req: Request[IO], uriString: String, method: Method)(
     implicit decoder: EntityDecoder[IO, T], 
