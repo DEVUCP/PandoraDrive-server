@@ -25,7 +25,7 @@ def database_setup(): IO[Unit] = {
       folder_id INTEGER PRIMARY KEY AUTOINCREMENT,
       parent_folder_id int NULL,
       folder_name TEXT NOT NULL check (length(folder_name) > 0),
-      created_at TEXT NOT NULL,
+      created_at TEXT NOT NULL default (datetime('now')),
       user_id int NOT NULL,
       FOREIGN KEY(parent_folder_id) REFERENCES folder_metadata(folder_id) on delete cascade
       UNIQUE (parent_folder_id, folder_name)
@@ -45,9 +45,8 @@ def database_setup(): IO[Unit] = {
       file_id INTEGER PRIMARY KEY AUTOINCREMENT,
       folder_id int NOT NULL,
       file_name TEXT NOT NULL check (length(file_name) > 0),
-      created_at TEXT NOT NULL,
-      modified_at TEXT NOT NULL,
-      uploaded_at TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      modified_at TEXT NOT NULL DEFAULT (datetime('now')),
       size_bytes bigint NOT NULL,
       mime_type TEXT NOT NULL,
       user_id int NOT NULL,
@@ -56,7 +55,15 @@ def database_setup(): IO[Unit] = {
       UNIQUE (folder_id, file_name)
     );""".update.run.void
       .transact(transactor)
-
+    _ <- sql"""
+      CREATE TRIGGER IF NOT EXISTS update_modified_at 
+      AFTER UPDATE ON file_metadata
+      FOR EACH ROW
+      WHEN NEW.modified_at = OLD.modified_at
+      BEGIN
+        UPDATE file_metadata SET modified_at = datetime('now') WHERE file_id = OLD.file_id;
+      END;
+    """.update.run.void.transact(transactor)
     _ <- IO.println("Creating file_chunk table...")
     _ <- sql"""create table if not exists file_chunk (
       file_id INTEGER,

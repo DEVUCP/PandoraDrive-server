@@ -113,7 +113,8 @@ def init_upload(body: dict) -> Dict:
     req = requests.post(f"{URL}/file/upload", json=body)
     json_response = req.json()
     print(json_response)
-    assert req.status_code == 200, "The initialization failed"
+    print(req.status_code)
+    assert req.ok, "The initialization failed"
     return json_response
 
 

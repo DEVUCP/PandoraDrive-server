@@ -10,19 +10,18 @@ import cats.effect.unsafe.implicits.global
 import db.transactor
 import doobie._
 import doobie.implicits._
-import dto.{FileCreationBody, validate_file_creation_body}
-import schema.{FileMetadata, FolderMetadata}
+import dto.{FileUpsertionBody}
 import types.{FileId, FolderId}
 
 def get_file_metadata_by_file_id(
     id: FileId
-): IO[Either[String, FileMetadata]] =
+): IO[Either[String, dto.FileMetadata]] =
   sql"""
-      select file_id, folder_id, file_name, size_bytes, mime_type, user_id, status, uploaded_at, created_at, modified_at
+      select file_id, folder_id, file_name, created_at, modified_at, size_bytes, mime_type, status
       from file_metadata
       where file_id = $id;
     """
-    .query[FileMetadata]
+    .query[dto.FileMetadata]
     .unique
     .transact(transactor)
     .attempt
@@ -43,83 +42,67 @@ def get_file_id_by_file_name_and_folder(
     .transact(transactor)
 
 def update_file_metadata(
-    body: FileCreationBody,
+    body: FileUpsertionBody,
     file_id: FileId
 ): IO[Either[String, Long]] = {
   implicit val bigIntPut: Put[BigInt] =
     Put[BigDecimal].contramap(BigDecimal(_))
 
-  for {
-    validation <- validate_file_creation_body(body)
-    resp <- {
-      val (valid, err) = validation
-      if (!valid) IO.pure(Left(err))
-      else {
-        val modified_at = java.time.Instant.now().toString
-        val updateQuery =
-          sql"""update file_metadata set status='Uploading', modified_at=${modified_at} where file_id=$file_id"""
-        updateQuery.update
-          .withGeneratedKeys[FileId]("id")
-          .compile
-          .last
-          .transact(transactor)
-          .attempt
-          .map {
-            case Right(_) => Right(file_id)
-            case Left(e) =>
-              Left(
-                s"Database error: ${e.getMessage}"
-              )
-          }
+  if (body.file_name.isEmpty) IO.pure(Left("Empty File Name"))
+  else {
+    val updateQuery =
+      sql"""update file_metadata set status='Uploading' where file_id=$file_id"""
+    updateQuery.update
+      .withGeneratedKeys[FileId]("id")
+      .compile
+      .last
+      .transact(transactor)
+      .attempt
+      .map {
+        case Right(_) => Right(file_id)
+        case Left(e) =>
+          Left(
+            s"Database error: ${e.getMessage}"
+          )
       }
-    }
-  } yield resp
+  }
 }
-def create_file_metadata(body: FileCreationBody): IO[Either[String, Long]] = {
+def create_file_metadata(body: FileUpsertionBody): IO[Either[String, Long]] = {
   implicit val bigIntPut: Put[BigInt] =
     Put[BigDecimal].contramap(BigDecimal(_))
 
-  for {
-    validation <- validate_file_creation_body(body)
-    result <- {
-      val (valid, err) = validation
-      if (!valid) IO.pure(Left(err))
-      else {
-        val uploaded_at = java.time.Instant.now().toString
-
-        val insertQuery =
-          sql"""
+  if (body.file_name.isEmpty) IO.pure(Left("Empty file name"))
+  else {
+    val insertQuery =
+      sql"""
             insert into file_metadata (
               file_name, folder_id, size_bytes, mime_type,
-              user_id, status, created_at, uploaded_at, modified_at
+              user_id, status
             )
             values (
               ${body.file_name}, ${body.folder_id}, ${body.size_bytes},
-              ${body.mime_type}, ${body.user_id}, 'Uploading',
-              ${body.created_at}, $uploaded_at, ${body.modified_at}
+              ${body.mime_type}, ${body.user_id}, 'Uploading'
             )
           """
 
-        val insertAction: ConnectionIO[Option[Long]] =
-          insertQuery.update
-            .withGeneratedKeys[Long]("id")
-            .compile
-            .last
+    val insertAction: ConnectionIO[Option[Long]] =
+      insertQuery.update
+        .withGeneratedKeys[Long]("id")
+        .compile
+        .last
 
-        insertAction
-          .transact(transactor)
-          .attempt
-          .map {
-            case Right(Some(id)) => Right(id)
-            case Right(None)     => Left("Insert failed: no ID returned")
-            case Left(e) =>
-              Left(
-                s"Database error: ${e.getMessage}"
-              )
-          }
+    insertAction
+      .transact(transactor)
+      .attempt
+      .map {
+        case Right(Some(id)) => Right(id)
+        case Right(None)     => Left("Insert failed: no ID returned")
+        case Left(e) =>
+          Left(
+            s"Database error: ${e.getMessage}"
+          )
       }
-    }
-  } yield result
+  }
 }
 
 def set_file_status_uploaded(file_id: FileId): IO[Unit] = {
@@ -129,12 +112,13 @@ def set_file_status_uploaded(file_id: FileId): IO[Unit] = {
 }
 
 def get_files_by_folder_id(folder_id: FolderId): IO[
-  List[FileMetadata]
+  List[dto.FileMetadata]
 ] =
   implicit val bigIntMeta: Meta[BigInt] = Meta[Long].timap(BigInt(_))(_.toLong)
 
-  sql"""select file_id, folder_id, file_name, size_bytes, mime_type, user_id, status, uploaded_at, created_at, modified_at from file_metadata where folder_id = $folder_id"""
-    .query[FileMetadata]
+  sql"""select file_id, folder_id, file_name, created_at, modified_at, size_bytes, mime_type, status
+  from file_metadata where folder_id = $folder_id"""
+    .query[dto.FileMetadata]
     .to[List]
     .transact(transactor)
     .handleErrorWith { e =>

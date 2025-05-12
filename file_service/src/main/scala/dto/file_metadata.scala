@@ -1,4 +1,4 @@
-package schema
+package dto
 
 import types.FileId
 
@@ -10,6 +10,5 @@ case class FileMetadata(
     modified_at: String,
     size_bytes: Int,
     mime_type: String,
-    user_id: Int,
     status: String
 )

@@ -2,27 +2,10 @@ package dto
 
 import cats.effect.IO
 
-case class FileCreationBody(
+case class FileUpsertionBody(
     file_name: String,
     folder_id: Int,
     size_bytes: BigInt,
     mime_type: String,
-    user_id: Int,
-    created_at: String,
-    modified_at: String
+    user_id: Int
 )
-
-def validate_file_creation_body(
-    body: FileCreationBody
-): IO[(Boolean, String)] = IO {
-  val dateRegex = """^\d{4}-\d{2}-\d{2}$""".r
-
-  if (body.file_name.trim.isEmpty)
-    (false, "file_name cannot be empty")
-  else if (!dateRegex.matches(body.created_at))
-    (false, "created_at has invalid format (expected YYYY-MM-DD)")
-  else if (!dateRegex.matches(body.modified_at))
-    (false, "modified_at has invalid format (expected YYYY-MM-DD)")
-  else
-    (true, "")
-}

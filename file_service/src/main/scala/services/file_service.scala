@@ -4,7 +4,7 @@ import cats.data.EitherT
 
 import cats.effect.IO
 
-import dto.{DTOFileDownloadBody, FileCompletionBody, FileCreationBody, FileDeletionBody, FileMoveBody, FileRenameBody, UploadBody}
+import dto.{DTOFileDownloadBody, FileCompletionBody, FileUpsertionBody, FileDeletionBody, FileMoveBody, FileRenameBody, UploadBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.Response
@@ -46,7 +46,7 @@ object file_service {
         )
     }
 
-  def upload_file_metadata(body: FileCreationBody): IO[Response[IO]] =
+  def upload_file_metadata(body: FileUpsertionBody): IO[Response[IO]] =
     model.folder_exists(body.user_id, body.folder_id).flatMap {
       case false => BadRequest(ErrorResponse("Invalid Folder data").asJson)
       case true =>
