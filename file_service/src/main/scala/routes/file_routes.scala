@@ -5,7 +5,16 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{ChunkMetadataMultipartUpload, DTOFileDownloadBody, FileCompletionBody, FileUpsertionBody, FileDeletionBody, FileMoveBody, FileRenameBody, UploadBody}
+import dto.{
+  ChunkMetadataMultipartUpload,
+  DTOFileDownloadBody,
+  FileCompletionBody,
+  FileUpsertionBody,
+  FileDeletionBody,
+  FileMoveBody,
+  FileRenameBody,
+  UploadBody
+}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.*
@@ -29,13 +38,13 @@ val file_routes = HttpRoutes
     case GET -> Root / "download" :? FileIdQueryParamMatcher(id) =>
       file_service.download_file_metadata(id)
 
-    case req @ POST -> Root / "rename" =>
+    case req @ PUT -> Root / "rename" =>
       req.as[FileRenameBody].attempt.flatMap {
         case Left(_)     => BadRequest(ErrorResponse("Invalid Body").asJson)
         case Right(body) => file_service.rename_file(body)
       }
 
-    case req @ POST -> Root / "move" =>
+    case req @ PUT -> Root / "move" =>
       req.as[FileMoveBody].attempt.flatMap {
         case Left(_)     => BadRequest(ErrorResponse("Invalid Body").asJson)
         case Right(body) => file_service.move_file(body)
