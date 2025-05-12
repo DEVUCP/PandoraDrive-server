@@ -17,7 +17,6 @@ lazy val root = (project in file("."))
       // Circe (Scala 3 compatible versions)
       "io.circe" %% "circe-generic" % "0.14.6",
       "io.circe" %% "circe-parser"  % "0.14.6",
-
       // Logging
       "org.typelevel" %% "log4cats-slf4j"  % "2.6.0",
       "ch.qos.logback" % "logback-classic" % "1.4.14",
@@ -28,6 +27,8 @@ lazy val root = (project in file("."))
 
       "org.xerial" % "sqlite-jdbc" % "3.23.1",
       "org.tpolecat" %% "doobie-core" % "1.0.0-RC8",
+
+      "com.github.jwt-scala" %% "jwt-circe" % "10.0.4",
 
       "org.tpolecat" %% "doobie-h2" % "1.0.0-RC8", // H2 driver 1.4.200 + type mappings.
       "org.tpolecat" %% "doobie-postgres" % "1.0.0-RC8",

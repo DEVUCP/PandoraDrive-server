@@ -1,17 +1,10 @@
 package services
 
 import cats.data.EitherT
+
 import cats.effect.IO
 
-import dto.{
-  DTOFileDownloadBody,
-  FileCompletionBody,
-  FileCreationBody,
-  FileDeletionBody,
-  UploadBody,
-  FileRenameBody,
-  FileMoveBody
-}
+import dto.{DTOFileDownloadBody, FileCompletionBody, FileCreationBody, FileDeletionBody, FileMoveBody, FileRenameBody, UploadBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.Response

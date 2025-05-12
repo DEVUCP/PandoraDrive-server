@@ -5,14 +5,7 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{
-  ChunkMetadataMultipartUpload,
-  DTOFileDownloadBody,
-  FileCompletionBody,
-  FileCreationBody,
-  FileDeletionBody,
-  UploadBody
-}
+import dto.{ChunkMetadataMultipartUpload, DTOFileDownloadBody, FileCompletionBody, FileCreationBody, FileDeletionBody, FileMoveBody, FileRenameBody, UploadBody}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.*
@@ -24,8 +17,6 @@ import org.http4s.multipart.{Multipart, _}
 import org.http4s.server.Router
 import services.file_service
 import types.{ErrorResponse, FileUploadMetadataInserted}
-import dto.FileRenameBody
-import dto.FileMoveBody
 
 val file_routes = HttpRoutes
   .of[IO] {
