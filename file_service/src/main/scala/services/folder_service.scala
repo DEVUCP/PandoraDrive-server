@@ -6,7 +6,12 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{FolderCreationBody, FolderDeletionBody, FolderMoveBody, FolderRenameBody}
+import dto.{
+  FolderCreationBody,
+  FolderDeletionBody,
+  FolderMoveBody,
+  FolderRenameBody
+}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s._
@@ -99,7 +104,7 @@ object folder_service {
     model
       .move_folder(body.folder_id, body.user_id, body.new_folder_id)
       .flatMap {
-        case true => Ok()
+        case true => NoContent()
         case false =>
           NotFound(
             ErrorResponse(
