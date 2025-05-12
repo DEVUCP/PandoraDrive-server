@@ -63,7 +63,7 @@ object chunk_service {
                         chunk_id,
                         chunk_seq
                       )
-                      resp <- Ok()
+                      resp <- NoContent()
                     } yield resp
                   } else {
                     val result = for {
@@ -80,7 +80,7 @@ object chunk_service {
                         InternalServerError(
                           ErrorResponse("Internal server error")
                         )
-                      case Right(_) => Ok()
+                      case Right(_) => NoContent()
                     }
                   }
               } yield response

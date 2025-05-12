@@ -48,7 +48,7 @@ object file_service {
 
   def upload_file_metadata(body: FileUpsertionBody): IO[Response[IO]] =
     model.folder_exists(body.user_id, body.folder_id).flatMap {
-      case false => BadRequest(ErrorResponse("Invalid Folder data").asJson)
+      case false => BadRequest(ErrorResponse("Folder doesn't exist").asJson)
       case true =>
         model
           .get_file_id_by_file_name_and_folder(body.file_name, body.folder_id)
@@ -96,7 +96,7 @@ object file_service {
             NotFound(ErrorResponse("Chunks are not uploaded").asJson)
           case true =>
             file_complete_status(file_id) *>
-              Ok()
+              NoContent()
         }
     }
 
@@ -111,7 +111,7 @@ object file_service {
       .remove_file_chunks(body.file_id, body.user_id)
       .flatMap(_ => model.delete_file_metadata(body.file_id, body.user_id))
       .flatMap {
-        case true => Ok()
+        case true => NoContent()
         case false =>
           NotFound(ErrorResponse("File Not found or already deleted").asJson)
       }
@@ -124,7 +124,7 @@ object file_service {
             "file_id is not set correctly. Check for file existence"
           ).asJson
         )
-      case true => Ok()
+      case true => NoContent()
     }
 
   def move_file(body: FileMoveBody): IO[Response[IO]] =
@@ -137,6 +137,6 @@ object file_service {
               "file_id is not set correctly. Check for file existence"
             ).asJson
           )
-        case true => Ok()
+        case true => NoContent()
       }
 }
