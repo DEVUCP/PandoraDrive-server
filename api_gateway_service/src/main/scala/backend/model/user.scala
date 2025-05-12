@@ -19,7 +19,12 @@ case class User(
 
 object User {
 
-    import doobie.generic.auto._
+  case class AuthUser(
+     id: String,
+     username: String
+  )
+
+  import doobie.generic.auto._
 
     def add_user(username: String, pass: String): IO[Unit] = 
         sql"""
