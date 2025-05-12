@@ -1,27 +1,25 @@
 package backend.core
 
-import backend.utils.{InputParser, PatternUtils, QuizUtils, AnalyticsUtils, UserPreferences}
+import cats.effect.IO
+import cats.effect.std.Random
+import backend.models._
+import backend.utils._
+
+class ChatbotEngine( tokenCache: TokenCache, random: Random[IO]) {
+  def handleUserInput(input: String): IO[ChatbotResponse] = {
+    for {
+      tokens <- tokenCache.get
+      parsed = InputParser.parseInput(input)
+      response <- RuleEngine.process(parsed, tokens)(random)
+    } yield response
+  }
+}
 
 object ChatbotEngine {
-  def greetUser(): String = 
-    "Welcome to PandoraDrive! Ask me about your files or start a quiz by typing 'start quiz'."
-
-  def handleUserInput(input: String): String = {
-    val cleaned = InputParser.cleanInput(input)
-
-    cleaned match {
-      case x if PatternUtils.isGreeting(x)       => greetUser()
-      case x if PatternUtils.isQuizRequest(x)    => QuizEngine.startQuiz("scala")
-      case x if PatternUtils.isAnalyticsRequest(x) =>
-        val log = AnalyticsUtils.getInteractionLog()
-        AnalyticsEngine.analyzeInteractions(log) + "\n" + AnalyticsEngine.analyzeQuizPerformance(log)
-      case "set dark mode"                       =>
-        UserPreferences.storeUserPreferences("dark mode")
-        "Got it! Preference saved: dark mode"
-      case "my preference" =>
-        UserPreferences.getUserPreferences().getOrElse("No preference set.")
-      case _ =>
-        s"I'm not sure how to help with that. Try asking for a quiz or analytics!"
-    }
+  def create(tokenLoader: IO[ChatbotTokens]): IO[ChatbotEngine] = {
+    for {
+      random <- Random.scalaUtilRandom[IO]
+      cache <- TokenCache.create(tokenLoader)
+    } yield new ChatbotEngine(cache, random)
   }
 }
