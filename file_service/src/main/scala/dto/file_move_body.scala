@@ -1,7 +1,6 @@
 package dto
 
-import types.FileId
-import types.FolderId
+import types.{FileId, FolderId}
 
 case class FileMoveBody(
     file_id: FileId,
