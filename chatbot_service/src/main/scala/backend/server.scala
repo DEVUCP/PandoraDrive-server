@@ -35,6 +35,10 @@ object server extends IOApp:
       }
   }
 
+  var port = sys.env.get("CHATBOT_SERVICE_PORT") match {
+    case Some(port) => Port.fromString(port).getOrElse(port"55550")
+    case None => port"55550"
+  }
   // server run func
   def run(args: List[String]): IO[ExitCode] = {
     val service_port = config.SERVICE_PORT

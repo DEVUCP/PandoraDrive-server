@@ -18,12 +18,17 @@ object server extends IOApp:
       Ok("pong")
   }.orNotFound
 
+  var port = sys.env.get("ANALYTICS_SERVICE_PORT") match {
+    case Some(port) => Port.fromString(port).getOrElse(port"55552")
+    case None => port"55552"
+  }
+  
   // server run func
   def run(args: List[String]): IO[ExitCode] =
     EmberServerBuilder
       .default[IO]
       .withHost(ipv4"0.0.0.0")
-      .withPort(port"55552")
+      .withPort(port)
       .withHttpApp(helloWorldService)
       .build
       .use(_ => IO.never)
