@@ -32,7 +32,7 @@ val folder_routes = HttpRoutes.of[IO] {
   case GET -> Root :? UserIdQueryParamMatcher(id) =>
     folder_service.get_user_root_folder(id)
 
-  case GET -> Root :? ParnetFolderIdQueryParamMatcher(id) =>
+  case GET -> Root :? ParentFolderIdQueryParamMatcher(id) =>
     folder_service.get_children_folders(id)
 
   case req @ POST -> Root / "upload" =>
