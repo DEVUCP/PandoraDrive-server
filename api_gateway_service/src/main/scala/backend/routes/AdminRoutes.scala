@@ -23,7 +23,7 @@ object AdminRoutes {
       
 
     case DELETE -> Root / "user" / userId =>
-      remove_user(userId).attempt.flatMap {
+      remove_user(userId.toInt).attempt.flatMap {
         case Right(_) => Ok(s"User removed successfully")
         case Left(e) =>
           InternalServerError(s"Failed to remove user: ${e.getMessage}")

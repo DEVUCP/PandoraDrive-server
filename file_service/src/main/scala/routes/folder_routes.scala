@@ -5,7 +5,12 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{FolderCreationBody, FolderDeletionBody, FolderMoveBody, FolderRenameBody}
+import dto.{
+  FolderCreationBody,
+  FolderDeletionBody,
+  FolderMoveBody,
+  FolderRenameBody
+}
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
@@ -27,7 +32,7 @@ val folder_routes = HttpRoutes.of[IO] {
   case GET -> Root :? UserIdQueryParamMatcher(id) =>
     folder_service.get_user_root_folder(id)
 
-  case GET -> Root :? ParnetFolderIdQueryParamMatcher(id) =>
+  case GET -> Root :? ParentFolderIdQueryParamMatcher(id) =>
     folder_service.get_children_folders(id)
 
   case req @ POST -> Root / "upload" =>
@@ -36,13 +41,13 @@ val folder_routes = HttpRoutes.of[IO] {
       case Right(body) => folder_service.create_folder_metadata(body)
     }
 
-  case req @ POST -> Root / "rename" =>
+  case req @ PUT -> Root / "rename" =>
     req.as[FolderRenameBody].attempt.flatMap {
       case Left(err)   => BadRequest(ErrorResponse("Invalid body").asJson)
       case Right(body) => folder_service.rename_folder(body)
     }
 
-  case req @ POST -> Root / "move" =>
+  case req @ PUT -> Root / "move" =>
     req.as[FolderMoveBody].attempt.flatMap {
       case Left(err)   => BadRequest(ErrorResponse("Invalid body").asJson)
       case Right(body) => folder_service.move_folder(body)
