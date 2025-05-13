@@ -1,4 +1,3 @@
-
 package schema
 
 import doobie._
@@ -20,9 +19,9 @@ case class ChunkMetadata(
 )
 
 def create_user_table(): IO[Unit] =
-    sql"""
+  sql"""
     CREATE TABLE IF NOT EXISTS users (
-    user_id    VARCHAR(64) PRIMARY KEY,
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
     username   VARCHAR(64) NOT NULL,
     password   VARCHAR(64) NOT NULL
     );
