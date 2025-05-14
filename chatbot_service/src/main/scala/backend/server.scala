@@ -21,6 +21,8 @@ object server extends IOApp:
       .handleErrorWith(err =>
         IO.raiseError(new RuntimeException(s"Failed to load tokens: $err")))
 
+  object UserIdQueryParameter extends QueryParamDecoderMatcher[Int]("user_id")
+
   //simple HTTP service/app
   private def helloWorldService(engine: ChatbotEngine): HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root / "hello" / name =>
@@ -29,8 +31,8 @@ object server extends IOApp:
       Ok("Hello, World!")
     case GET -> Root / "ping" =>
       Ok("pong")
-    case GET -> Root / "chat" / prompt =>
-      engine.handleUserInput(prompt).flatMap { response =>
+    case GET -> Root / "chat" / prompt :? UserIdQueryParameter(user_id) =>
+      engine.handleUserInput(prompt, user_id).flatMap { response =>
         Ok(response.asJson)
       }
   }
