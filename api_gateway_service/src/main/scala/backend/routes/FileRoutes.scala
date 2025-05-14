@@ -29,8 +29,6 @@ object FileRoutes {
       extends QueryParamDecoderMatcher[String]("file_id")
   object FolderIdQueryParamMatcher
       extends QueryParamDecoderMatcher[String]("folder_id")
-  object UserIddQueryParamMatcher
-      extends QueryParamDecoderMatcher[String]("user_id")
 
   // case class
   val routesWithAuth: AuthedRoutes[AuthUser, IO] = AuthedRoutes.of {
@@ -99,6 +97,13 @@ object FileRoutes {
           Method.GET
         )
       }
+
+    case req @ GET -> Root / "folder" =>
+      routeRequestJson(
+        req,
+        s"http://file:$file_service_port/folder",
+        Method.GET
+      )
   }
 
   val routes = AuthMiddleware(routesWithAuth)

@@ -15,17 +15,20 @@ import org.http4s.dsl.io._
 
 object AuthMiddleware {
 
-  private def extractSessionCookie(request: Request[IO]): IO[Option[String]] = IO {
-    request.headers.get[Cookie]
-      .flatMap(_.values.find(_.name == "session"))
-      .map(_.content)
-  }
+  private def extractSessionCookie(request: Request[IO]): IO[Option[String]] =
+    IO {
+      request.headers
+        .get[Cookie]
+        .flatMap(_.values.find(_.name == "session"))
+        .map(_.content)
+    }
 
   private def verifyUser(token: String): IO[Option[AuthUser]] = {
     decode_token[AuthUser](token) match {
-      case Right(claim) => get_user_by_id(claim.id).map {
+      case Right(claim) =>
+        get_user_by_id(claim.id).map {
           case Some(user) => Some(AuthUser(user.userId, user.username))
-          case None => None
+          case None       => None
         }
       case Left(_) => IO.pure(None)
     }
@@ -40,3 +43,4 @@ object AuthMiddleware {
     }
   }
 }
+
