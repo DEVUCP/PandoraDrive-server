@@ -1,12 +1,12 @@
 package backend.routes
 
 import cats.effect.IO
+import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.ember.client.EmberClientBuilder
 import com.comcast.ip4s.*
 import org.typelevel.ci.CIString
-
 import org.http4s.circe.CirceEntityDecoder._
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.multipart.Multipart
@@ -14,6 +14,7 @@ import org.http4s.multipart.Multipart
 import io.circe.Json
 import io.circe.generic.auto._
 import org.http4s.implicits._
+import org.http4s.server.Router
 import utils.config
 import utils.routing.{routeRequestJson, addUserIdToReq}
 
@@ -30,7 +31,15 @@ object FileRoutes {
   object FolderIdQueryParamMatcher
       extends QueryParamDecoderMatcher[String]("folder_id")
 
-  // case class
+  val routesWithoutAuth: HttpRoutes[IO] = HttpRoutes.of[IO] {
+    case req @ GET -> Root / "folder" =>
+      routeRequestJson(
+        req,
+        s"http://file:$file_service_port/folder",
+        Method.GET
+      )
+  }
+
   val routesWithAuth: AuthedRoutes[AuthUser, IO] = AuthedRoutes.of {
 
     case req @ GET -> Root / "ping" as user =>
@@ -97,14 +106,7 @@ object FileRoutes {
           Method.GET
         )
       }
-
-    case req @ GET -> Root / "folder" =>
-      routeRequestJson(
-        req,
-        s"http://file:$file_service_port/folder",
-        Method.GET
-      )
   }
 
-  val routes = AuthMiddleware(routesWithAuth)
+  val routes = AuthMiddleware(routesWithAuth) <+> routesWithoutAuth
 }
