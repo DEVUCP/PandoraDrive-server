@@ -6,11 +6,11 @@ import backend.models._
 import backend.utils._
 
 class ChatbotEngine( tokenCache: TokenCache, random: Random[IO]) {
-  def handleUserInput(input: String): IO[ChatbotResponse] = {
+  def handleUserInput(input: String, user_id: Int): IO[ChatbotResponse] = {
     for {
       tokens <- tokenCache.get
       parsed = InputParser.parseInput(input)
-      response <- RuleEngine.process(parsed, tokens)(random)
+      response <- RuleEngine.process(parsed, tokens, user_id)(random)
     } yield response
   }
 }
