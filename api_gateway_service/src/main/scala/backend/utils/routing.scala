@@ -21,13 +21,16 @@ object routing {
 
   def addUserIdToReq(original_req: Request[IO], user_id: Int): IO[Request[IO]] =
     original_req.as[Json].flatMap { json =>
-      val enhanced = json.asObject match {
-        case Some(obj) => obj.add("user_id", Json.fromInt(user_id))
-      }
+      val enhanced = json.asObject.map(_.add("user_id", Json.fromInt(user_id)))
 
-      val newReq = original_req
-        .withEntity(enhanced.asJson) // Convert JsonObject back to Json
-      IO.pure(newReq)
+      enhanced match {
+        case Some(obj) =>
+          val newReq = original_req.withEntity(obj.asJson)
+          IO.pure(newReq)
+
+        case None =>
+          IO.pure(original_req) // Return the original request unmodified
+      }
     }
 
   def routeRequestImpl[T](req: Request[IO], uriString: String, method: Method)(
@@ -81,4 +84,3 @@ object routing {
     routeRequestImpl[String](req, URI, method)
   }
 }
-
