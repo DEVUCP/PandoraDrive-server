@@ -16,7 +16,7 @@ implicit val fileDecoder: EntityDecoder[IO, List[FileMetadata]] = jsonOf
 implicit val analyticsEncoder: EntityEncoder[IO, Json] = jsonEncoderOf
 
 def routeRequestImpl[T](uriString: String, method: Method)(
-    implicit decoder: EntityDecoder[IO, T]
+  implicit decoder: EntityDecoder[IO, T]
 ): IO[T] = {
   EmberClientBuilder.default[IO].build.use { client =>
     Uri.fromString(uriString) match {
@@ -92,46 +92,46 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
       val smallestVideo = sortedBySize.find(f => isVideo(f.mime_type))
 
       val responseJson = Json.obj(
-        "The largest file in your drive" -> Json.fromString(
+        "LargestFile" -> Json.fromString(
           largest.map(_.file_name).getOrElse("N/A")
         ),
-        "The smallest file in your drive" -> Json.fromString(
+        "SmallestFile" -> Json.fromString(
           smallest.map(_.file_name).getOrElse("N/A")
         ),
-        "The number of files you uploaded to your drive" -> Json.fromInt(
+        "NumFiles" -> Json.fromInt(
           numFiles
         ),
-        "Your most recently uploaded photo/video was taken at" -> Json
+        "MostRecentFile" -> Json
           .fromString(mostRecentCreated),
-        "Your last photo/video uploaded was uploaded at" -> Json.fromString(
+        "MostRecentFileUploadDate" -> Json.fromString(
           mostRecentUploaded
         ),
-        "The total size of your uploaded media is" -> Json.fromInt(totalSize),
-        "The number of photos/videos you uploaded this day" -> Json.fromInt(
+        "TotalSize" -> Json.fromInt(totalSize),
+        "NumFilesToday" -> Json.fromInt(
           uploadedToday
         ),
-        "The number of photos/videos you uploaded this week" -> Json.fromInt(
+        "NumFilesThisWeek" -> Json.fromInt(
           uploadedWeek
         ),
-        "The number of photos/videos you uploaded this month" -> Json.fromInt(
+        "NumFilesThisMonth" -> Json.fromInt(
           uploadedMonth
         ),
-        "The number of photos/videos you uploaded this year" -> Json.fromInt(
+        "NumFilesThisYear" -> Json.fromInt(
           uploadedYear
         ),
-        "The length of your longest uploaded video" -> Json.fromString(
+        "LongestVideoLength" -> Json.fromString(
           largestVideo.map(v => v.size_bytes + " bytes").getOrElse("N/A")
         ),
-        "The length of your shortest uploaded video" -> Json.fromString(
+        "ShortestVideoLength" -> Json.fromString(
           smallestVideo.map(v => v.size_bytes + " bytes").getOrElse("N/A")
         ),
-        "The number of videos you have in your drive" -> Json.fromInt(videos),
-        "The number of photos you have in your drive" -> Json.fromInt(photos),
-        "The number of folders you have created in your drive" -> Json.fromInt(
+        "NumVideos" -> Json.fromInt(videos),
+        "NumPhotos" -> Json.fromInt(photos),
+        "NumFolders" -> Json.fromInt(
           files.map(_.folder_id).distinct.size
         ),
-        "The space you have left in your drive" -> Json.fromInt(spaceLeft),
-        "The folder that has the biggest number of uploaded media" -> Json
+        "SizeLeft" -> Json.fromInt(spaceLeft),
+        "BiggestFile" -> Json
           .fromInt(
             files
               .groupBy(_.folder_id)
