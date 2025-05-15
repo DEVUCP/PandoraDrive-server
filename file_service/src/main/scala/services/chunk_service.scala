@@ -5,11 +5,23 @@ import cats.effect.unsafe.implicits.global
 import cats.effect.{ExitCode, IO, IOApp, _}
 
 import com.comcast.ip4s.*
-import dto.{ChunkDownloadBody, ChunkMetadataMultipartUpload, FileCompletionBody, UploadBody}
+import dto.{
+  ChunkDownloadBody,
+  ChunkMetadataMultipartUpload,
+  FileCompletionBody,
+  UploadBody
+}
 import io.circe.generic.auto._
 import io.circe.parser._
 import io.circe.syntax._
-import model.{are_file_chunks_uploaded, chunk_exists, chunk_reference_add, create_chunk_metadata, create_file_chunk_link, get_chunk_metadata}
+import model.{
+  are_file_chunks_uploaded,
+  chunk_exists,
+  chunk_reference_add,
+  create_chunk_metadata,
+  create_file_chunk_link,
+  get_chunk_metadata
+}
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.circe._
 import org.http4s.dsl.io.*
@@ -39,11 +51,11 @@ object chunk_service {
     for {
       metadataBytes <- metadata.body.compile.to(Array)
       metadataStr = new String(metadataBytes, "UTF-8")
+      _ <- IO.println(s"Here, ${metadataStr}")
       parsed = parse(metadataStr).flatMap(_.as[ChunkMetadataMultipartUpload])
       response <- parsed match {
         case Left(_) =>
           BadRequest(ErrorResponse("Invalid request: Invalid Metadata body"))
-
         case Right(
               ChunkMetadataMultipartUpload(token, chunk_seq, chunk_size)
             ) =>
