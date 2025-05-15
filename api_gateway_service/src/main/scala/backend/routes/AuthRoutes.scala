@@ -9,11 +9,14 @@ import org.http4s.multipart._
 import org.http4s.circe._
 import io.circe.generic.auto._
 import model.User.{get_user_by_username, AuthUser}
-import utils.jwt
+import utils.{jwt, config}
 import cats.syntax.all._
 import org.http4s.MediaType
 import io.circe.Json
 import io.circe.syntax._
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import org.http4s.HttpDate
 
 object AuthRoutes {
 
@@ -30,7 +33,13 @@ object AuthRoutes {
             Ok("User logged in successfully")
               .map(
                 _.addCookie(
-                  ResponseCookie("session", session, path = Some("/"))
+                  ResponseCookie(
+                    "session",
+                    session,
+                    path = Some("/"),
+                    maxAge = Some(config.JWT_EXPIRY_IN_SECONDS),
+                    expires = Some(HttpDate.fromInstant(Instant.now().plus(config.JWT_EXPIRY_IN_SECONDS, ChronoUnit.SECONDS)).toOption.get)
+                  )
                 )
               )
           case Left(e) =>
