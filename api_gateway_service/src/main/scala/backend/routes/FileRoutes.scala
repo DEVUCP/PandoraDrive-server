@@ -43,11 +43,11 @@ object FileRoutes {
         )
       }
 
-    case req @ POST -> Root / "upload" / "init" as user =>
+    case req @ POST -> Root / "upload" as user =>
       addUserIdToReq(req.req, user.id).flatMap { req =>
         routeRequestJson(
           req,
-          s"http://localhost:$file_service_port/file/upload/init",
+          s"http://localhost:$file_service_port/file/upload",
           Method.POST
         )
       }

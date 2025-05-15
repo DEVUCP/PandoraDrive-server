@@ -97,14 +97,10 @@ def gather_stat(file_path: str):
 
     stat = os.stat(file_path)
 
-    created_at = datetime.datetime.fromtimestamp(stat.st_ctime).strftime("%Y-%m-%d")
-    modified_at = datetime.datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d")
     return {
         "file_name": os.path.basename(file_path),
         "size_bytes": stat.st_size,
         "mime_type": mime_type,
-        "created_at": created_at,
-        "modified_at": modified_at,
     }
 
 
