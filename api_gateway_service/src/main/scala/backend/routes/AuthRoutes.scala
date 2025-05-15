@@ -21,7 +21,9 @@ object AuthRoutes {
       username: String,
       password: String
   ): IO[Response[IO]] = {
-    get_user_by_username(username).attempt.flatMap {
+    val result = get_user_by_username(username)
+
+    result.attempt.flatMap {
       case Right(Some(user)) if user.password == password =>
         jwt.encode_token(AuthUser(user.userId, user.username)) match {
           case Right(session) =>
@@ -65,4 +67,3 @@ object AuthRoutes {
       }
   }
 }
-
