@@ -4,7 +4,15 @@ import cats.data.EitherT
 
 import cats.effect.IO
 
-import dto.{DTOFileDownloadBody, FileCompletionBody, FileUpsertionBody, FileDeletionBody, FileMoveBody, FileRenameBody, UploadBody}
+import dto.{
+  DTOFileDownloadBody,
+  FileCompletionBody,
+  FileUpsertionBody,
+  FileDeletionBody,
+  FileMoveBody,
+  FileRenameBody,
+  UploadBody
+}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s.Response
@@ -12,6 +20,7 @@ import org.http4s.circe._
 import org.http4s.dsl.io.*
 import types.{ErrorResponse, FileId, FileUploadMetadataInserted, FolderId}
 import utils.{config, jwt}
+import dto.FileCompletionMetadata
 
 object file_service {
   def folder_files(folder_id: FolderId): IO[Response[IO]] =
@@ -72,7 +81,6 @@ object file_service {
                   case Right(token_data) =>
                     Ok(
                       FileUploadMetadataInserted(
-                        "File Metadata Inserted",
                         token_data,
                         s"${config.SERVICE_URL}:${config.SERVICE_PORT}/chunk/upload",
                         s"${config.SERVICE_URL}:${config.SERVICE_PORT}/file/upload/complete",
@@ -96,7 +104,7 @@ object file_service {
             NotFound(ErrorResponse("Chunks are not uploaded").asJson)
           case true =>
             file_complete_status(file_id) *>
-              NoContent()
+              Ok(FileCompletionMetadata(file_id).asJson)
         }
     }
 

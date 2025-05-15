@@ -41,13 +41,10 @@ def upload_file(file_path: str):
         print(f"Error: Failed to initialize upload - {str(e)}", file=sys.stderr)
         sys.exit(1)
 
-    message = init_data["message"]
     token = init_data["token"]
     upload_link = init_data["upload_link"]
     complete_link = init_data["complete_link"]
     chunk_size = init_data["chunk_size"]
-
-    print(f"Initilization message: {message}")
 
     try:
         with open(file_path, "rb") as f:
@@ -132,7 +129,7 @@ def upload_chunk(
         upload_link,
         files={
             "metadata": (None, json.dumps(metadata), "application/json"),
-            "chunk": (f"chunk_{chunk_sequence}.bin", chunk, "application/octet-stream"),
+            "chunk": (None, chunk, "application/octet-stream"),
         },
     )
 

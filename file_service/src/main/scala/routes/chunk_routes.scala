@@ -26,11 +26,12 @@ val chunk_routes = HttpRoutes
       EntityDecoder
         .mixedMultipartResource[IO]()
         .use(decoder =>
+          println(decoder)
           req.decodeWith(decoder, strict = true)(multipart =>
             val chunk_metadata =
               multipart.parts.find(_.name.contains("metadata"))
-            val chunk =
-              multipart.parts.find(_.name.contains("chunk"))
+            val chunk = multipart.parts.find(_.name.contains("chunk"))
+
             (chunk_metadata, chunk) match {
               case (_, None) =>
                 BadRequest(
@@ -41,7 +42,8 @@ val chunk_routes = HttpRoutes
                   ErrorResponse("Invalid request: No Metadata Received")
                 )
               case (Some(metadata), Some(chunk)) =>
-                chunk_service.upload_chunk(metadata, chunk)
+                IO.println("Beginning to upload a new chunk") *>
+                  chunk_service.upload_chunk(metadata, chunk)
             }
           )
         )
