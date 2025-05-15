@@ -11,13 +11,21 @@ import backend.routes.{AdminRoutes, FileRoutes, ChatbotRoutes, AuthRoutes}
 import schema.{initialize_schema}
 import utils.config
 
+import org.http4s.headers.Origin
+import org.typelevel.ci.CIString
 import org.http4s.server.middleware._
 import org.http4s.server.middleware.Throttle
 import scala.concurrent.duration.DurationInt
 
 object server extends IOApp:
 
-  private val corsPolicy = CORS.policy.withAllowOriginAll
+  private val corsPolicy = CORS.policy
+    .withAllowOriginHost(Set(
+      Origin.Host(Uri.Scheme.http, Uri.RegName("localhost"), Some(5173))
+    ))
+    .withAllowCredentials(true)
+    .withAllowMethodsIn(Set(Method.GET, Method.POST, Method.PUT, Method.DELETE, Method.OPTIONS))
+    .withAllowHeadersIn(Set(CIString("Content-Type"), CIString("Authorization"), CIString("Cookie")))
 
   //simple HTTP service/app
   private val httpApp = Router(
