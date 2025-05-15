@@ -26,12 +26,14 @@ object FileRoutes {
 
   val file_service_port = config.FILE_SERVICE_PORT
 
-  object FileIdQueryParamMatcher
-      extends QueryParamDecoderMatcher[String]("file_id")
-  object FolderIdQueryParamMatcher
-      extends QueryParamDecoderMatcher[String]("folder_id")
-
   val routesWithAuth: AuthedRoutes[AuthUser, IO] = AuthedRoutes.of {
+    case req @ GET -> Root as user =>
+      routeRequestJson(
+        req.req,
+        s"http://localhost:$file_service_port/file",
+        Method.GET
+      )
+
     case req @ GET -> Root / "ping" as user =>
       addUserIdToReq(req.req, user.id).flatMap { req =>
         routeRequestJson(
@@ -50,31 +52,11 @@ object FileRoutes {
         )
       }
 
-    case req @ GET -> Root / "download" / "init" :? FileIdQueryParamMatcher(
-          fileId
-        ) as user =>
+    case req @ GET -> Root / "download" / "init" as user =>
       addUserIdToReq(req.req, user.id).flatMap { req =>
         routeRequestJson(
           req,
-          s"http://localhost:$file_service_port/file/download?file_id=$fileId",
-          Method.GET
-        )
-      }
-
-    case req @ GET -> Root :? FileIdQueryParamMatcher(fileId) as user =>
-      addUserIdToReq(req.req, user.id).flatMap { req =>
-        routeRequestJson(
-          req,
-          s"http://localhost:$file_service_port/file?file_id=$fileId",
-          Method.GET
-        )
-      }
-
-    case req @ GET -> Root :? FolderIdQueryParamMatcher(folderId) as user =>
-      addUserIdToReq(req.req, user.id).flatMap { req =>
-        routeRequestJson(
-          req,
-          s"http://localhost:$file_service_port/file/?folder_id=$folderId",
+          s"http://localhost:$file_service_port/file/download",
           Method.GET
         )
       }
@@ -96,14 +78,11 @@ object FileRoutes {
       )
 
     case req @ GET -> Root / "folder" as user =>
-      IO.println(
-        s"http://localhost:$file_service_port/folder"
-      ) *>
-        routeRequestJson(
-          req.req,
-          s"http://localhost:$file_service_port/folder",
-          Method.GET
-        )
+      routeRequestJson(
+        req.req,
+        s"http://localhost:$file_service_port/folder",
+        Method.GET
+      )
   }
 
   val routes = AuthMiddleware(routesWithAuth)
