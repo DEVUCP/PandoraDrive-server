@@ -34,13 +34,11 @@ case class FileMetadata(
   file_id: Int,
   folder_id: Int,
   file_name: String,
+  created_at: String,
+  modified_at: String,
   size_bytes: Int,
   mime_type: String,
-  user_id: Int,
   status: String,
-  uploaded_at: String,
-  created_at: String,
-  modified_at: String
 )
 
 // Placeholder values
@@ -72,7 +70,7 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
       val mostRecentCreated =
         createdDates.sorted.lastOption.map(_.toString).getOrElse("N/A")
 
-      val uploadedDates = files.flatMap(f => parseDate(f.uploaded_at))
+      val uploadedDates = files.flatMap(f => parseDate(f.created_at))
       val mostRecentUploaded =
         uploadedDates.sorted.lastOption.map(_.toString).getOrElse("N/A")
 
@@ -152,7 +150,7 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
 }
 
 object server extends IOApp:
-  object FolderIdQueryParameter extends QueryParamDecoderMatcher[String]("folder_id")
+  object UserIdQueryParameter extends QueryParamDecoderMatcher[String]("user_id")
 
   private val helloWorldService = HttpRoutes.of[IO] {
     case GET -> Root / "hello" / name =>
@@ -161,7 +159,7 @@ object server extends IOApp:
       Ok("Hello, World!")
     case GET -> Root / "ping" =>
       Ok("pong")
-    case GET -> Root / "analytics" :? FolderIdQueryParameter(id) =>
+    case GET -> Root / "analytics" :? UserIdQueryParameter(id) =>
       getAnalytics(id)
   }.orNotFound
 

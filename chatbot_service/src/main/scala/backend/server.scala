@@ -13,6 +13,7 @@ import io.circe.generic.auto._  // For automatic codec derivation
 import io.circe.syntax._        // For .asJson extension
 import org.http4s.circe._       // For http4s JSON support
 import backend.models._
+import org.http4s.circe.CirceEntityCodec.circeEntityDecoder
 
 object server extends IOApp:
 
@@ -21,7 +22,7 @@ object server extends IOApp:
       .handleErrorWith(err =>
         IO.raiseError(new RuntimeException(s"Failed to load tokens: $err")))
 
-  object UserIdQueryParameter extends QueryParamDecoderMatcher[Int]("user_id")
+  case class ChatRequest(message: String, user_id: Int)
 
   //simple HTTP service/app
   private def helloWorldService(engine: ChatbotEngine): HttpRoutes[IO] = HttpRoutes.of[IO] {
@@ -31,10 +32,12 @@ object server extends IOApp:
       Ok("Hello, World!")
     case GET -> Root / "ping" =>
       Ok("pong")
-    case GET -> Root / "chat" / prompt :? UserIdQueryParameter(user_id) =>
-      engine.handleUserInput(prompt, user_id).flatMap { response =>
-        Ok(response.asJson)
-      }
+    case req @ POST -> Root / "chat"  =>
+      for {
+        chatRequest <- req.as[ChatRequest]
+        response <- engine.handleUserInput(chatRequest.message, chatRequest.user_id)
+        resp <- Ok(response.asJson)
+      } yield resp
   }
 
   var port = sys.env.get("CHATBOT_SERVICE_PORT") match {

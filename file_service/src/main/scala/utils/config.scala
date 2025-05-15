@@ -4,7 +4,7 @@ object config {
   val JWT_SECRET: String = sys.env.getOrElse("JWT_SECRET", "MOCK_SECRET")
   val ENCRYPT_SECRET: String =
     sys.env.getOrElse("ENCRYPT_SECRET", "MOCK_SECRET")
-  val DB_URL: String = sys.env.getOrElse("DB_URL", "")
+  val DB_URL: String = sys.env.getOrElse("DB_URL", "jdbc:sqlite:db.db")
   val CHUNK_SIZE: Int =
     sys.env.get("CHUNK_SIZE").flatMap(_.toIntOption).getOrElse(1024 * 1024)
   val JWT_EXPIRY_IN_SECONDS =

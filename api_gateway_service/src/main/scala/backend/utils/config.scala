@@ -10,4 +10,7 @@ object config {
     val FILE_SERVICE_PORT : Port = Port.fromString(sys.env.getOrElse("FILE_SERVICE_PORT", "55555")).getOrElse(port"55555")
     val JWT_SECRET : String = sys.env.getOrElse("JWT_SECRET", "MOCK_SECRET")
     val JWT_EXPIRY_IN_SECONDS = sys.env.get("JWT_EXPIRY_IN_SECONDS").flatMap(_.toIntOption).getOrElse(2592000)
+    val CHATBOT_SERVICE_PORT: String = sys.env.getOrElse("CHATBOT_SERVICE_PORT", "55550")
+    val CHATBOT_SERVICE_URL: String = sys.env.getOrElse("CHATBOT_SERVICE_URL", "http://localhost")
+
 }

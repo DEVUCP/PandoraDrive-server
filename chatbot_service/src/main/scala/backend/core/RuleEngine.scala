@@ -17,7 +17,7 @@ case class ChatRule(
 )
 
 object RuleEngine {
-  private def randomResponse(texts: Option[List[String]], html: Option[List[String]], format_response : String => String) (implicit r: Random[IO]): IO[ChatbotResponse] = {
+  private def randomResponse(texts: Option[List[String]], html: Option[String], format_response : String => String) (implicit r: Random[IO]): IO[ChatbotResponse] = {
     texts match {
       case Some(list) if list.nonEmpty =>
         r.nextIntBounded(list.size).map(idx =>
@@ -199,10 +199,7 @@ object RuleEngine {
       name = "upload",
       priority = 71,
       matches = (input, tokens) => matchesToken(input, tokens.UploadFile.input_tokens),
-      execute = (tokens, _, _) => IO.pure(ChatbotResponse(
-        text = None,
-        html_object = tokens.UploadFile.output.html_object
-      ))
+      execute = (tokens, r, _) => randomResponse(tokens.UploadFile.output.text, tokens.UploadFile.output.html_object, response => response)(r)
     ),
 
     ChatRule(

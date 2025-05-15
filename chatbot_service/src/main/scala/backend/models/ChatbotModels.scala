@@ -4,12 +4,12 @@ import io.circe.generic.auto._
 
 case class ChatbotResponse(
   text: Option[String],
-  html_object: Option[List[String]]
+  html_object: Option[String]
 )
 
 case class ChatbotOutput(
   text: Option[List[String]],
-  html_object: Option[List[String]]
+  html_object: Option[String]
 )
 
 case class ChatbotToken(
