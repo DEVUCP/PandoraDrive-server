@@ -39,7 +39,12 @@ def get_root_folder_by_user_id(
     .transact(transactor)
     .flatMap {
       case Some(folder) => IO.pure(Right(folder))
-      case None         => create_folder("root", None, user_id)
+      case None =>
+        create_folder("root", None, user_id).flatMap {
+          case Right(folder_id) =>
+            get_folder_metadata_by_folder_id(folder_id)
+          case Left(_) => IO.pure(Left("Failed to get root folder"))
+        }
     }
 
 def create_folder(
@@ -60,7 +65,7 @@ def create_folder(
         .transact(transactor)
         .attempt
         .flatMap {
-          case Right(folder_id) => Right(folder_id)
+          case Right(folder_id) => IO.pure(Right(folder_id))
           case Left(e: SQLException)
               if e.getMessage.contains("UNIQUE constraint failed") =>
             IO.pure(

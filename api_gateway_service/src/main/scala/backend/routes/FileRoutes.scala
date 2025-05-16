@@ -73,16 +73,18 @@ object FileRoutes {
     case req @ GET -> Root / "folder" / "root" as user =>
       routeRequestJson(
         req.req,
-        s"http://localhost:$file_service_port/folder?user_id=${user.id}",
+        s"http://localhost:$file_service_port/folder/root?user_id=${user.id}",
         Method.GET
       )
 
-    case req @ GET -> Root / "folder" as user =>
-      routeRequestJson(
-        req.req,
-        s"http://localhost:$file_service_port/folder",
-        Method.GET
-      )
+    case req @ POST -> Root / "folder" / "upload" as user =>
+      addUserIdToReq(req.req, user.id).flatMap { req =>
+        routeRequestJson(
+          req,
+          s"http://localhost:$file_service_port/folder/upload",
+          Method.POST
+        )
+      }
   }
 
   val routes = AuthMiddleware(routesWithAuth)

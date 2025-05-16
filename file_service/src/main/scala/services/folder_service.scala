@@ -45,7 +45,7 @@ object folder_service {
       )
       .flatMap {
         case Right(folder_id) =>
-          Ok(folder.asJson)
+          Ok(folder_id.asJson)
 
         case Left(errMsg) if errMsg.contains("already exists") =>
           Conflict(ErrorResponse(errMsg).asJson)

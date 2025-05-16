@@ -42,8 +42,7 @@ val chunk_routes = HttpRoutes
                   ErrorResponse("Invalid request: No Metadata Received")
                 )
               case (Some(metadata), Some(chunk)) =>
-                IO.println("Beginning to upload a new chunk") *>
-                  chunk_service.upload_chunk(metadata, chunk)
+                chunk_service.upload_chunk(metadata, chunk)
             }
           )
         )
