@@ -12,5 +12,7 @@ object config {
     val JWT_EXPIRY_IN_SECONDS = sys.env.get("JWT_EXPIRY_IN_SECONDS").flatMap(_.toIntOption).getOrElse(2592000)
     val CHATBOT_SERVICE_PORT: String = sys.env.getOrElse("CHATBOT_SERVICE_PORT", "55550")
     val CHATBOT_SERVICE_URL: String = sys.env.getOrElse("CHATBOT_SERVICE_URL", "http://localhost")
+    val CLIENT_PORT: Int = sys.env.get("CLIENT_PORT").flatMap(_.toIntOption).getOrElse(5173)
+    val CLIENT_DOMAIN: String = sys.env.getOrElse("CLIENT_DOMAIN", "localhost")
 
 }

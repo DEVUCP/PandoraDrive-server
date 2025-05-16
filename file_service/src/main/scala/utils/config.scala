@@ -13,4 +13,8 @@ object config {
     sys.env.getOrElse("FILE_SERVICE_PORT", "55555")
   val SERVICE_URL: String =
     sys.env.getOrElse("FILE_SERVICE_URL", "http://localhost")
+  val CLIENT_PORT: Int =
+    sys.env.get("CLIENT_PORT").flatMap(_.toIntOption).getOrElse(5173)
+  val CLIENT_DOMAIN: String =
+    sys.env.getOrElse("CLIENT_DOMAIN", "localhost")
 }

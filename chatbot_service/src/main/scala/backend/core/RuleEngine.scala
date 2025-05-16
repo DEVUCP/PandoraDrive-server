@@ -80,7 +80,7 @@ object RuleEngine {
 
     ChatRule(
       name = "recent_upload_date_stat",
-      priority = 80,
+      priority = 81,
       matches = (input, tokens) => matchesToken(input, tokens.RecentUploadDateStat.input_tokens),
       execute = (tokens, r, user_id) => fetchAnalytics(user_id).flatMap { data =>
         randomResponse(tokens.RecentUploadDateStat.output.text, tokens.RecentUploadDateStat.output.html_object, response => response.replace("{}", data.MostRecentFileUploadDate))(r)
@@ -98,7 +98,7 @@ object RuleEngine {
 
     ChatRule(
       name = "daily_uploads_stat",
-      priority = 80,
+      priority = 81,
       matches = (input, tokens) => matchesToken(input, tokens.DailyUploadsStat.input_tokens),
       execute = (tokens, r, user_id) => fetchAnalytics(user_id).flatMap { data =>
         randomResponse(tokens.DailyUploadsStat.output.text, tokens.DailyUploadsStat.output.html_object, response => response.replace("{}", data.NumFilesToday.toString))(r)
@@ -107,7 +107,7 @@ object RuleEngine {
 
     ChatRule(
       name = "weekly_uploads_stat",
-      priority = 80,
+      priority = 81,
       matches = (input, tokens) => matchesToken(input, tokens.WeeklyUploadsStat.input_tokens),
       execute = (tokens, r, user_id) => fetchAnalytics(user_id).flatMap { data =>
         randomResponse(tokens.WeeklyUploadsStat.output.text, tokens.WeeklyUploadsStat.output.html_object, response => response.replace("{}", data.NumFilesThisWeek.toString))(r)
@@ -116,7 +116,7 @@ object RuleEngine {
 
     ChatRule(
       name = "monthly_uploads_stat",
-      priority = 80,
+      priority = 81,
       matches = (input, tokens) => matchesToken(input, tokens.MonthlyUploadsStat.input_tokens),
       execute = (tokens, r, user_id) => fetchAnalytics(user_id).flatMap { data =>
         randomResponse(tokens.MonthlyUploadsStat.output.text, tokens.MonthlyUploadsStat.output.html_object, response => response.replace("{}", data.NumFilesThisMonth.toString))(r)
@@ -125,7 +125,7 @@ object RuleEngine {
 
     ChatRule(
       name = "yearly_uploads_stat",
-      priority = 80,
+      priority = 81,
       matches = (input, tokens) => matchesToken(input, tokens.YearlyUploadsStat.input_tokens),
       execute = (tokens, r, user_id) => fetchAnalytics(user_id).flatMap { data =>
         randomResponse(tokens.YearlyUploadsStat.output.text, tokens.YearlyUploadsStat.output.html_object, response => response.replace("{}", data.NumFilesThisYear.toString))(r)

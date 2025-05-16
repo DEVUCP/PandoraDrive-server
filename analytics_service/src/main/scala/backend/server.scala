@@ -64,11 +64,11 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
       val smallest = sortedBySize.headOption
       val largest = sortedBySize.lastOption
       val totalSize = files.map(_.size_bytes).sum
-      val spaceLeft = maxDriveSpace - totalSize
+      val spaceLeft = (maxDriveSpace - totalSize)
 
       val createdDates = files.flatMap(f => parseDate(f.created_at))
       val mostRecentCreated =
-        createdDates.sorted.lastOption.map(_.toString).getOrElse("N/A")
+        files.sortBy(_.created_at).headOption.map(_.file_name).getOrElse("N/A")
 
       val uploadedDates = files.flatMap(f => parseDate(f.created_at))
       val mostRecentUploaded =
@@ -104,7 +104,7 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
         "MostRecentFileUploadDate" -> Json.fromString(
           mostRecentUploaded
         ),
-        "TotalSize" -> Json.fromInt(totalSize),
+        "TotalSize" -> Json.fromInt(totalSize / 1000000),
         "NumFilesToday" -> Json.fromInt(
           uploadedToday
         ),
@@ -128,7 +128,7 @@ def getAnalytics(folderId: String): IO[Response[IO]] = {
         "NumFolders" -> Json.fromInt(
           files.map(_.folder_id).distinct.size
         ),
-        "SizeLeft" -> Json.fromInt(spaceLeft),
+        "SizeLeft" -> Json.fromInt(spaceLeft / 1000000),
         "BiggestFile" -> Json
           .fromInt(
             files
