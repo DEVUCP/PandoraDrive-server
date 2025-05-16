@@ -39,35 +39,41 @@ def get_root_folder_by_user_id(
     .transact(transactor)
     .flatMap {
       case Some(folder) => IO.pure(Right(folder))
-      case None => create_folder(FolderCreationBody("root", None, user_id))
+      case None         => create_folder("root", None, user_id)
     }
 
 def create_folder(
-    body: FolderCreationBody
-): IO[Either[String, FolderMetadata]] =
-  sql"""insert into folder_metadata(folder_name, parent_folder_id, user_id) values(${body.folder_name}, ${body.parent_folder_id}, ${body.user_id})""".update
-    .withUniqueGeneratedKeys[Int]("folder_id")
-    .transact(transactor)
-    .attempt
-    .flatMap {
-      case Right(folder_id) =>
-        sql"""select folder_id, parent_folder_id, folder_name,created_at, user_id from folder_metadata where folder_id=$folder_id"""
-          .query[FolderMetadata]
-          .unique
-          .transact(transactor)
-          .flatMap(folder => IO.pure(Right(folder)))
-      case Left(e: SQLException)
-          if e.getMessage.contains("UNIQUE constraint failed") =>
-        IO.pure(
-          Left(
-            "Folder with the same name already exists in the target directory."
-          )
-        )
+    folder_name: String,
+    parent_folder_id: Option[FolderId],
+    user_id: Int
+): IO[Either[String, FolderId]] =
+  val valid: IO[Boolean] = parent_folder_id match {
+    case None         => IO.pure(true)
+    case Some(folder) => folder_exists(folder, user_id)
+  }
 
-      case Left(e) =>
-        IO.println(s"Unexpected DB error: ${e.getMessage}") *>
-          IO.pure(Left("Unexpected database error"))
-    }
+  valid.flatMap {
+    case false => IO.pure(Left("Invalid parent_folder_id"))
+    case true =>
+      sql"""insert into folder_metadata(folder_name, parent_folder_id, user_id) values(${folder_name}, ${parent_folder_id}, ${user_id})""".update
+        .withUniqueGeneratedKeys[FolderId]("folder_id")
+        .transact(transactor)
+        .attempt
+        .flatMap {
+          case Right(folder_id) => Right(folder_id)
+          case Left(e: SQLException)
+              if e.getMessage.contains("UNIQUE constraint failed") =>
+            IO.pure(
+              Left(
+                "Folder with the same name already exists in the target directory."
+              )
+            )
+
+          case Left(e) =>
+            IO.println(s"Unexpected DB error: ${e.getMessage}") *>
+              IO.pure(Left("Unexpected database error"))
+        }
+  }
 
 def folder_exists(folder_id: FolderId, user_id: Int): IO[Boolean] =
   sql"""select 1 from folder_metadata where user_id = $user_id and folder_id = $folder_id"""
