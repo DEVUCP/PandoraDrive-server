@@ -21,7 +21,7 @@ object server extends IOApp:
 
   private val corsPolicy = CORS.policy
     .withAllowOriginHost(Set(
-      Origin.Host(Uri.Scheme.http, Uri.RegName("localhost"), Some(5173))
+      Origin.Host(Uri.Scheme.http, Uri.RegName(config.CLIENT_DOMAIN), Some(config.CLIENT_PORT))
     ))
     .withAllowCredentials(true)
     .withAllowMethodsIn(Set(Method.GET, Method.POST, Method.PUT, Method.DELETE, Method.OPTIONS))
