@@ -56,41 +56,45 @@ object file_service {
     }
 
   def upload_file_metadata(body: FileUpsertionBody): IO[Response[IO]] =
-    model.folder_exists(body.user_id, body.folder_id).flatMap {
-      case false => BadRequest(ErrorResponse("Folder doesn't exist").asJson)
-      case true =>
-        model
-          .get_file_id_by_file_name_and_folder(body.file_name, body.folder_id)
-          .flatMap { data =>
-            val db_request = data match {
-              case Some(id) => model.update_file_metadata(body, id)
-              case None     => model.create_file_metadata(body)
-            }
+    IO.println(body) *>
+      model.folder_exists(body.folder_id, body.user_id).flatMap {
+        case false =>
+          IO.println("Quitting 2") *>
+            NotFound(ErrorResponse("Folder doesn't exist").asJson)
+        case true =>
+          model
+            .get_file_id_by_file_name_and_folder(body.file_name, body.folder_id)
+            .flatMap { data =>
+              val db_request = data match {
+                case Some(id) => model.update_file_metadata(body, id)
+                case None     => model.create_file_metadata(body)
+              }
 
-            db_request.flatMap {
-              case Left(err) =>
-                BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
-              case Right(file_id) =>
-                val token =
-                  jwt.encode_token(UploadBody(file_id))
-                token match {
-                  case Left(err) =>
-                    IO.println(err) *> InternalServerError(
-                      "Internal Server Error"
-                    )
-                  case Right(token_data) =>
-                    Ok(
-                      FileUploadMetadataInserted(
-                        token_data,
-                        s"${config.SERVICE_URL}:${config.SERVICE_PORT}/chunk/upload",
-                        s"${config.SERVICE_URL}:${config.SERVICE_PORT}/file/upload/complete",
-                        config.CHUNK_SIZE
-                      ).asJson
-                    )
-                }
+              db_request.flatMap {
+                case Left(err) =>
+                  IO.println("Quitting 3") *>
+                    BadRequest(ErrorResponse(s"Error occurred: $err").asJson)
+                case Right(file_id) =>
+                  val token =
+                    jwt.encode_token(UploadBody(file_id))
+                  token match {
+                    case Left(err) =>
+                      IO.println(err) *> InternalServerError(
+                        "Internal Server Error"
+                      )
+                    case Right(token_data) =>
+                      Ok(
+                        FileUploadMetadataInserted(
+                          token_data,
+                          s"${config.SERVICE_URL}:${config.SERVICE_PORT}/chunk/upload",
+                          s"${config.SERVICE_URL}:${config.SERVICE_PORT}/file/upload/complete",
+                          config.CHUNK_SIZE
+                        ).asJson
+                      )
+                  }
+              }
             }
-          }
-    }
+      }
 
   def upload_complete_curried(
       is_file_chunks_uploaded: FileId => IO[Boolean],

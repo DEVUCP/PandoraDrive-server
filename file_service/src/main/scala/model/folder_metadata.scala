@@ -19,9 +19,9 @@ import types.FolderId
 
 def get_folder_metadata_by_folder_id(
     id: FolderId
-): IO[Either[String, FolderMetadata]] =
+): IO[Either[String, dto.FolderMetadata]] =
   sql"""select folder_id, parent_folder_id, folder_name, created_at, user_id from folder_metadata where folder_id = $id"""
-    .query[FolderMetadata]
+    .query[dto.FolderMetadata]
     .unique
     .transact(transactor)
     .attempt
@@ -32,9 +32,9 @@ def get_folder_metadata_by_folder_id(
 
 def get_root_folder_by_user_id(
     user_id: Int
-): IO[Either[String, FolderMetadata]] =
-  sql"""select folder_id, parent_folder_id, folder_name, created_at, user_id from folder_metadata where user_id = $user_id and parent_folder_id is null"""
-    .query[FolderMetadata]
+): IO[Either[String, dto.FolderMetadata]] =
+  sql"""select folder_id, parent_folder_id, folder_name, created_at from folder_metadata where user_id = $user_id and parent_folder_id is null"""
+    .query[dto.FolderMetadata]
     .option
     .transact(transactor)
     .flatMap {
@@ -84,9 +84,9 @@ def folder_exists(folder_id: FolderId, user_id: Int): IO[Boolean] =
 
 def get_folder_by_parent_id(
     parent_folder_id: FolderId
-): IO[List[FolderMetadata]] =
-  sql"""select folder_id, parent_folder_id, folder_name,created_at, user_id from folder_metadata where parent_folder_id=$parent_folder_id"""
-    .query[FolderMetadata]
+): IO[List[dto.FolderMetadata]] =
+  sql"""select folder_id, parent_folder_id, folder_name,created_at user_id from folder_metadata where parent_folder_id=$parent_folder_id"""
+    .query[dto.FolderMetadata]
     .to[List]
     .attempt
     .transact(transactor)

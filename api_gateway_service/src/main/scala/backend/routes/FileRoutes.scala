@@ -28,7 +28,6 @@ object FileRoutes {
 
   object FileIdQueryParamMatcher extends QueryParamDecoderMatcher[String]("file_id")
   object FolderIdQueryParamMatcher extends QueryParamDecoderMatcher[String]("folder_id")
-  object UserIddQueryParamMatcher extends QueryParamDecoderMatcher[String]("user_id")
 
   val routesWithAuth: AuthedRoutes[AuthUser, IO] = AuthedRoutes.of {
 
@@ -50,9 +49,28 @@ object FileRoutes {
     case req @ DELETE -> Root / "delete" as _ =>
       routeRequestJson(req.req, s"http://file:$file_service_port/file/delete", Method.DELETE)
 
-    case req @ GET -> Root / "folder" :? UserIddQueryParamMatcher(userId) as _ =>
-      routeRequestJson(req.req, s"http://file:$file_service_port/folder?user_id=$userId", Method.GET)
-    
+    case req @ GET -> Root / "folder" as user =>
+      routeRequestJson(
+        req.req,
+        s"http://localhost:$file_service_port/folder",
+        Method.GET
+      )
+
+    case req @ GET -> Root / "folder" / "root" as user =>
+      routeRequestJson(
+        req.req,
+        s"http://localhost:$file_service_port/folder/root?user_id=${user.id}",
+        Method.GET
+      )
+
+    case req @ POST -> Root / "folder" / "upload" as user =>
+      addUserIdToReq(req.req, user.id).flatMap { req =>
+        routeRequestJson(
+          req,
+          s"http://localhost:$file_service_port/folder/upload",
+          Method.POST
+        )
+      }
   }
 
   val routes = AuthMiddleware(routesWithAuth)

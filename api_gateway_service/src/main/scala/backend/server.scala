@@ -36,7 +36,7 @@ object server extends IOApp:
       }  ).orNotFound
 
   private val finalHttpApp = Throttle.httpApp[IO](
-    amount = 10,
+    amount = 100,
     per = 1.seconds
   )(corsPolicy(httpApp))
 
