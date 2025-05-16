@@ -57,7 +57,7 @@ object file_service {
 
   def upload_file_metadata(body: FileUpsertionBody): IO[Response[IO]] =
     IO.println(body) *>
-      model.folder_exists(body.folder_id, body.folder_id).flatMap {
+      model.folder_exists(body.folder_id, body.user_id).flatMap {
         case false =>
           IO.println("Quitting 2") *>
             NotFound(ErrorResponse("Folder doesn't exist").asJson)
