@@ -87,7 +87,7 @@ def create_file_metadata(body: FileUpsertionBody): IO[Either[String, Long]] = {
 
     val insertAction: ConnectionIO[Option[Long]] =
       insertQuery.update
-        .withGeneratedKeys[Long]("id")
+        .withGeneratedKeys[FileId]("id")
         .compile
         .last
 

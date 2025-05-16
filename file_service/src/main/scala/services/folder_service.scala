@@ -37,16 +37,22 @@ object folder_service {
     }
 
   def create_folder_metadata(body: FolderCreationBody): IO[Response[IO]] =
-    model.create_folder(body).flatMap {
-      case Right(folder) =>
-        Ok(folder.asJson)
+    model
+      .create_folder(
+        body.folder_name,
+        Some(body.parent_folder_id),
+        body.user_id
+      )
+      .flatMap {
+        case Right(folder_id) =>
+          Ok(folder.asJson)
 
-      case Left(errMsg) if errMsg.contains("already exists") =>
-        Conflict(ErrorResponse(errMsg).asJson)
+        case Left(errMsg) if errMsg.contains("already exists") =>
+          Conflict(ErrorResponse(errMsg).asJson)
 
-      case Left(errMsg) =>
-        InternalServerError(ErrorResponse(errMsg).asJson)
-    }
+        case Left(errMsg) =>
+          InternalServerError(ErrorResponse(errMsg).asJson)
+      }
 
   def get_user_root_folder(user_id: Int): IO[Response[IO]] =
     model
