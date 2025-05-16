@@ -13,8 +13,19 @@ import org.http4s.ember.server._
 import org.http4s.server.Router
 import routes.{chunk_routes, file_routes, folder_routes}
 import utils.config
+import org.http4s.server.middleware._
+import org.http4s.headers.Origin
+import org.typelevel.ci.CIString
 
 object server extends IOApp {
+
+  private val corsPolicy = CORS.policy
+    .withAllowOriginHost(Set(
+      Origin.Host(Uri.Scheme.http, Uri.RegName(config.CLIENT_DOMAIN), Some(config.CLIENT_PORT))
+    ))
+    .withAllowCredentials(true)
+    .withAllowMethodsIn(Set(Method.GET, Method.POST, Method.PUT, Method.DELETE, Method.OPTIONS))
+    .withAllowHeadersIn(Set(CIString("Content-Type"), CIString("Authorization"), CIString("Cookie")))
 
   private val router = Router(
     "/folder" -> folder_routes,
@@ -25,6 +36,8 @@ object server extends IOApp {
     }
   ).orNotFound
 
+  private val corsEnabledRouter = corsPolicy(router)
+
   def run(args: List[String]): IO[ExitCode] = {
     val servicePort =
       Port.fromString(config.SERVICE_PORT).getOrElse(port"55555")
@@ -34,7 +47,7 @@ object server extends IOApp {
         .default[IO]
         .withHost(ipv4"0.0.0.0")
         .withPort(servicePort)
-        .withHttpApp(router)
+        .withHttpApp(corsEnabledRouter)
         .build
         .as(())
 
