@@ -51,7 +51,6 @@ object chunk_service {
     for {
       metadataBytes <- metadata.body.compile.to(Array)
       metadataStr = new String(metadataBytes, "UTF-8")
-      _ <- IO.println(s"Here, ${metadataStr}")
       parsed = parse(metadataStr).flatMap(_.as[ChunkMetadataMultipartUpload])
       response <- parsed match {
         case Left(_) =>

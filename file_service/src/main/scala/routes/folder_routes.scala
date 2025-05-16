@@ -29,7 +29,7 @@ val folder_routes = HttpRoutes.of[IO] {
   case GET -> Root :? FolderIdQueryParamMatcher(id) =>
     folder_service.get_folder_files_metadata(id)
 
-  case GET -> Root :? UserIdQueryParamMatcher(id) =>
+  case GET -> Root / "root" :? UserIdQueryParamMatcher(id) =>
     folder_service.get_user_root_folder(id)
 
   case GET -> Root :? ParentFolderIdQueryParamMatcher(id) =>
