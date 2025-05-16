@@ -70,6 +70,13 @@ object FileRoutes {
         )
       }
 
+    case req @ GET -> Root / "folder" as user =>
+      routeRequestJson(
+        req.req,
+        s"http://localhost:$file_service_port/folder",
+        Method.GET
+      )
+
     case req @ GET -> Root / "folder" / "root" as user =>
       routeRequestJson(
         req.req,
