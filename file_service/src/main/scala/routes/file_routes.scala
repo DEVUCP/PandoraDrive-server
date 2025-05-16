@@ -53,7 +53,10 @@ val file_routes = HttpRoutes
     case req @ POST -> Root / "upload" =>
       req.as[FileUpsertionBody].attempt.flatMap {
         case Left(error) =>
-          BadRequest(ErrorResponse(s"Invalid body: ${error.getMessage}").asJson)
+          IO.println("Quitting 1") *>
+            BadRequest(
+              ErrorResponse(s"Invalid body: ${error.getMessage}").asJson
+            )
 
         case Right(body) =>
           file_service.upload_file_metadata(body)
