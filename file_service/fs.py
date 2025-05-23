@@ -16,7 +16,7 @@ def validate_folder():
     global cur_folder
     if cur_folder:
         return
-    req = requests.get(f"{URL}/folder?user_id={USER_ID}")
+    req = requests.get(f"{URL}/folder/root?user_id={USER_ID}")
     cur_folder = req.json()
     print("Current folder has been initiated")
 

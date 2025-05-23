@@ -15,7 +15,7 @@ USER_ID = 1
 
 def calc_folder_id():
     global FOLDER_ID
-    req = requests.get(f"{URL}/folder?user_id={USER_ID}")
+    req = requests.get(f"{URL}/folder/root?user_id={USER_ID}")
     FOLDER_ID = req.json()["folder_id"]
     print(f"FolderId is {FOLDER_ID}")
 
